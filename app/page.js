@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import styles from "./page.module.css";
 
 import TopBar from "@components/layout/TopBar";
@@ -9,6 +9,7 @@ import fullscreenStyles from "../styles/Fullscreen.module.css";
 import LoadingSpinner from "@components/common/LoadingSpinner";
 import ErrorMessage from "@components/common/ErrorMessage";
 import FloatingActionButton from "@components/widgets/FloatingActionButton";
+import CacheDebugPanel from "@components/debug/CacheDebugPanel";
 
 import { useNotes } from "@hooks/useNotes";
 import { checkBackendHealth } from "@lib/services/api";
@@ -43,6 +44,7 @@ function PageContent() {
     restoreNote,
     togglePin,
     clearAllDeleted,
+    cache,
   } = useNotes();
 
   useEffect(() => {
@@ -143,6 +145,8 @@ function PageContent() {
 
   return (
     <div className={`${styles.app} ${isFullscreen ? "fullscreen-mode" : ""}`}>
+      {/* <CacheDebugPanel cache={cache} /> */}
+
       <TopBar
         headerBackgroundEnabled={headerBackgroundEnabled}
         onToggleHeaderBackground={handleToggleHeaderBackground}

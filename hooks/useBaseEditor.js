@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useDebounce } from "./useDebounce";
 import {
@@ -20,6 +22,8 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
   const [shouldBlinkDropdown, setShouldBlinkDropdown] = useState(false);
   const [typeChangeConfirmation, setTypeChangeConfirmation] = useState(null);
   const [shouldFocusTitle, setShouldFocusTitle] = useState(false);
+  const [pendingUpdates, setPendingUpdates] = useState({});
+  const [isUserEditing, setIsUserEditing] = useState(false);
 
   const titleInputRef = useRef(null);
   const noteType = selectedNote?.type || NOTE_TYPES.RICH_TEXT;
@@ -30,21 +34,22 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
     setCharCount(plainText.length);
   }, []);
 
-  const handleUpdate = async (field, value) => {
-    if (!selectedNote) return;
-    setIsSaving(true);
-    try {
-      await onUpdateNote(selectedNote._id, { [field]: value });
-    } finally {
-      setIsSaving(false);
-      setTimeout(() => setIsUserEditing(false), 100);
-    }
-  };
-
-  const [isUserEditing, setIsUserEditing] = useState(false);
-
   const { debouncedCallback: debouncedUpdate, cleanup } = useDebounce(
-    handleUpdate,
+    async (field, value) => {
+      if (!selectedNote) return;
+
+      // Collect any pending updates
+      const updates = { ...pendingUpdates, [field]: value };
+      setPendingUpdates({});
+
+      setIsSaving(true);
+      try {
+        await onUpdateNote(selectedNote._id, updates);
+      } finally {
+        setIsSaving(false);
+        setTimeout(() => setIsUserEditing(false), 100);
+      }
+    },
     1500
   );
 
@@ -52,23 +57,41 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
     setIsUserEditing(true);
+    setPendingUpdates((prev) => ({ ...prev, [NOTE_FIELDS.TITLE]: newTitle }));
     debouncedUpdate(NOTE_FIELDS.TITLE, newTitle);
   };
 
   const handleContentKeyDown = (e, content) => {
     if (e.key === "Enter") {
       debouncedUpdate.cancel?.(); // cancel the debounce timer
-      handleUpdate(NOTE_FIELDS.CONTENT, content); // force immediate save
+      const updates = { ...pendingUpdates, [NOTE_FIELDS.CONTENT]: content };
+      setPendingUpdates({});
+      handleUpdate(selectedNote._id, updates); // force immediate save with all pending updates
     }
   };
 
   const handleContentChange = useCallback(
     (newContent) => {
       updateCounts(newContent);
+      setPendingUpdates((prev) => ({
+        ...prev,
+        [NOTE_FIELDS.CONTENT]: newContent,
+      }));
       debouncedUpdate(NOTE_FIELDS.CONTENT, newContent);
     },
     [updateCounts, debouncedUpdate]
   );
+
+  const handleUpdate = async (noteId, updates) => {
+    if (!selectedNote) return;
+    setIsSaving(true);
+    try {
+      await onUpdateNote(noteId, updates);
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setIsUserEditing(false), 100);
+    }
+  };
 
   const performTypeChange = async (newType) => {
     if (!selectedNote) return;
@@ -111,8 +134,10 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
         newContent = "";
     }
 
-    await handleUpdate(NOTE_FIELDS.TYPE, newType);
-    await handleUpdate(NOTE_FIELDS.CONTENT, newContent);
+    await handleUpdate(selectedNote._id, {
+      [NOTE_FIELDS.TYPE]: newType,
+      [NOTE_FIELDS.CONTENT]: newContent,
+    });
 
     setShouldBlinkDropdown(true);
     setTimeout(() => setShouldBlinkDropdown(false), 1000);

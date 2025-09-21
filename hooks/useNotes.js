@@ -25,6 +25,7 @@ export const useNotes = () => {
     updateNoteInArrays,
     removeNoteFromArrays,
     selectNote,
+    cache, // Added cache from state
   } = useNotesState();
 
   const { loadNotes, fetchNoteById } = useNotesLoader({
@@ -34,6 +35,7 @@ export const useNotes = () => {
     setAllNotes,
     setSelectedNote,
     execute,
+    cache, // Pass cache to loader
   });
 
   const { createNote } = useNotesCreator({
@@ -70,11 +72,15 @@ export const useNotes = () => {
 
   const { counts } = useNotesComputed({ allNotes });
 
+  const handleSelectNote = async (note) => {
+    return await selectNote(note, fetchNoteById);
+  };
+
   return {
     notes,
     allNotes,
     selectedNote,
-    setSelectedNote: selectNote,
+    setSelectedNote: handleSelectNote, // Use enhanced selection function
     counts,
     loading,
     error,
@@ -92,5 +98,6 @@ export const useNotes = () => {
     restoreNote,
     togglePin,
     clearAllDeleted,
+    cache,
   };
 };
