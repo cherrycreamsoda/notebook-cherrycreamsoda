@@ -32,39 +32,18 @@ const MainContent = ({
   const { loading: pinLoading, execute: executePin } = useAsyncAction();
   const { loading: deleteLoading, execute: executeDelete } = useAsyncAction();
   const headerRef = useRef(null);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [isDisabling, setIsDisabling] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
-    const header = headerRef.current;
-    if (!header || !headerBackgroundEnabled) return;
+    if (headerBackgroundEnabled !== undefined) {
+      setIsTransitioning(true);
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+      }, 800); // Match CSS transition duration
 
-    setImageLoaded(false);
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      setImageLoaded(true);
-    };
-    img.onerror = () => {
-      console.warn("Header background image failed to load");
-    };
-    img.src = "images/marble-header-bg.jpg";
-  }, [headerBackgroundEnabled]);
-
-  useEffect(() => {
-    const header = headerRef.current;
-    if (!header) return;
-
-    if (!headerBackgroundEnabled) {
-      if (imageLoaded) {
-        setIsDisabling(true);
-        setTimeout(() => {
-          setIsDisabling(false);
-          setImageLoaded(false);
-        }, 800);
-      }
+      return () => clearTimeout(timer);
     }
-  }, [headerBackgroundEnabled, imageLoaded]);
+  }, [headerBackgroundEnabled]);
 
   const handleTogglePin = () => {
     if (!selectedNote) return;
@@ -87,15 +66,13 @@ const MainContent = ({
     let classes = "main-header";
 
     if (headerBackgroundEnabled) {
-      classes += " background-enabled";
-      if (imageLoaded) {
-        classes += " image-loaded";
-      }
+      classes += " gradient-enabled";
     } else {
-      classes += " background-disabled";
-      if (isDisabling) {
-        classes += " fading-out";
-      }
+      classes += " gradient-disabled";
+    }
+
+    if (isTransitioning) {
+      classes += " transitioning";
     }
 
     return classes;
