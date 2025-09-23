@@ -39,13 +39,13 @@ export const useNotesState = () => {
 
   const selectNote = async (note, fetchNoteById) => {
     if (!note) {
-      console.log("[v0] Closing note - setting selectedNote to null");
+      console.log("Closing note - setting selectedNote to null");
       setSelectedNote(null);
       setCreateError(null);
       return null;
     }
 
-    console.log("[v0] Selecting note:", note._id, "title:", note.title);
+    console.log("Selecting note:", note._id, "title:", note.title);
 
     // First, check if we have the full note in cache
     const cachedNote = cache.getCachedNote(note._id);
@@ -54,7 +54,7 @@ export const useNotesState = () => {
       // Use cached version immediately
       setSelectedNote(cachedNote);
       setCreateError(null);
-      console.log("[v0] Using cached note for selection");
+      console.log("Using cached note for selection");
       return cachedNote;
     }
 
@@ -69,13 +69,13 @@ export const useNotesState = () => {
       cache.setCachedNote(note._id, note);
       setSelectedNote(note);
       setCreateError(null);
-      console.log("[v0] Note has full content, cached and selected");
+      console.log("Note has full content, cached and selected");
       return note;
     }
 
     // If we have a fetchNoteById function, fetch the full note
     if (fetchNoteById) {
-      console.log("[v0] Fetching full note from server");
+      console.log("Fetching full note from server");
       try {
         const fullNote = await fetchNoteById(note._id);
         if (fullNote) {
@@ -83,18 +83,18 @@ export const useNotesState = () => {
           cache.setCachedNote(fullNote._id, fullNote);
           setSelectedNote(fullNote);
           setCreateError(null);
-          console.log("[v0] Fetched and cached full note");
+          console.log("Fetched and cached full note");
           return fullNote;
         }
       } catch (error) {
-        console.error("[v0] Error fetching note:", error);
+        console.error("Error fetching note:", error);
       }
     }
 
     // Fallback: use the note as-is
     setSelectedNote(note);
     setCreateError(null);
-    console.log("[v0] Using note as-is (fallback)");
+    console.log("Using note as-is (fallback)");
     return note;
   };
 

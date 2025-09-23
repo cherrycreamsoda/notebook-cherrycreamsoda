@@ -12,7 +12,7 @@ export const useNotesCache = () => {
         setCacheStats((prev) => ({ ...prev, hits: prev.hits + 1 }));
         const cachedData = cache.get(noteId);
         console.log(
-          "[v0] Cache HIT for note:",
+          "Cache HIT for note:",
           noteId,
           "cached at:",
           cachedData.cachedAt
@@ -20,7 +20,7 @@ export const useNotesCache = () => {
         return cachedData.note;
       }
       setCacheStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
-      console.log("[v0] Cache MISS for note:", noteId);
+      console.log("Cache MISS for note:", noteId);
       return null;
     },
     [cache]
@@ -34,12 +34,7 @@ export const useNotesCache = () => {
         cachedAt: new Date().toISOString(),
         lastAccessed: new Date().toISOString(),
       });
-      console.log(
-        "[v0] Cached note:",
-        noteId,
-        "total cached notes:",
-        newCache.size
-      );
+      console.log("Cached note:", noteId, "total cached notes:", newCache.size);
       return newCache;
     });
   }, []);
@@ -53,7 +48,7 @@ export const useNotesCache = () => {
           cachedAt: prev.get(noteId).cachedAt, // Keep original cache time
           lastAccessed: new Date().toISOString(),
         });
-        console.log("[v0] Updated cached note:", noteId);
+        console.log("Updated cached note:", noteId);
         return newCache;
       }
       return prev;
@@ -66,7 +61,7 @@ export const useNotesCache = () => {
         const newCache = new Map(prev);
         newCache.delete(noteId);
         console.log(
-          "[v0] Removed cached note:",
+          "Removed cached note:",
           noteId,
           "remaining cached notes:",
           newCache.size
@@ -80,7 +75,7 @@ export const useNotesCache = () => {
   const clearCache = useCallback(() => {
     setCache(new Map());
     setCacheStats({ hits: 0, misses: 0 });
-    console.log("[v0] Cache cleared");
+    console.log("Cache cleared");
   }, []);
 
   const isCached = useCallback(

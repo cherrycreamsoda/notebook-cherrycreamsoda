@@ -9,7 +9,6 @@ import fullscreenStyles from "../styles/Fullscreen.module.css";
 import LoadingSpinner from "@components/common/LoadingSpinner";
 import ErrorMessage from "@components/common/ErrorMessage";
 import FloatingActionButton from "@components/widgets/FloatingActionButton";
-import CacheDebugPanel from "@components/debug/CacheDebugPanel";
 
 import { useNotes } from "@hooks/useNotes";
 import { checkBackendHealth } from "@lib/services/api";
@@ -49,12 +48,25 @@ function PageContent() {
 
   useEffect(() => {
     const checkConnection = async () => {
-      const isConnected = await checkBackendHealth();
-      setBackendConnected(isConnected);
-      setInitialLoading(false);
+      try {
+        const isConnected = await checkBackendHealth();
+        setBackendConnected(isConnected);
+
+        if (!isConnected) {
+          createError(
+            "Database connection failed. Please check your server connection and try again."
+          );
+        }
+      } catch (error) {
+        console.error("Backend health check failed:", error);
+        createError("Unable to connect to the database. Server may be down.");
+        setBackendConnected(false);
+      } finally {
+        setInitialLoading(false);
+      }
     };
     checkConnection();
-  }, []);
+  }, [createError]);
 
   useEffect(() => {
     if (backendConnected) {
@@ -137,7 +149,42 @@ function PageContent() {
     return (
       <div className={styles.app}>
         <div className={styles["app-loading"]}>
-          <LoadingSpinner message="Connecting to server..." size={32} />
+          <LoadingSpinner liquidAnimation={true} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!backendConnected && !initialLoading) {
+    return (
+      <div className={styles.app}>
+        <div className={styles["app-loading"]}>
+          <ErrorMessage
+            message={error || createError || "Database connection failed"}
+            onDismiss={clearError}
+            onRetry={() => {
+              setInitialLoading(true);
+              const checkConnection = async () => {
+                try {
+                  const isConnected = await checkBackendHealth();
+                  setBackendConnected(isConnected);
+                  if (!isConnected) {
+                    createError(
+                      "Database connection failed. Please check your server connection and try again."
+                    );
+                  }
+                } catch (error) {
+                  createError(
+                    "Unable to connect to the database. Server may be down."
+                  );
+                  setBackendConnected(false);
+                } finally {
+                  setInitialLoading(false);
+                }
+              };
+              checkConnection();
+            }}
+          />
         </div>
       </div>
     );
