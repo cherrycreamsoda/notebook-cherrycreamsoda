@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 
-import "../../styles/ChecklistEditor.css";
+import "@styles/ChecklistEditor.css";
 import { Plus, X, GripVertical } from "lucide-react";
 
 const ChecklistEditor = ({ content, onContentChange }) => {

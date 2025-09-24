@@ -6,7 +6,7 @@ import EditorContainer from "@components/editors/EditorContainer";
 
 import { useAsyncAction } from "@hooks/useAsyncAction";
 
-import "../../styles/MainContent.css";
+import "@styles/MainContent.css";
 import {
   PanelLeftOpen,
   PanelLeftClose,

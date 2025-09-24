@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { useTheme } from "contexts/ThemeContext";
 
-import "../../styles/TopBar.css";
+import "@styles/TopBar.css";
 import { Sun, Moon, User } from "lucide-react";
 
 const TopBar = ({ headerBackgroundEnabled, onToggleHeaderBackground }) => {

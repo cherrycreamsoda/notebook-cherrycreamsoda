@@ -8,7 +8,7 @@ import ConfirmationDialog from "@components/common/ConfirmationDialog";
 
 import { useAsyncAction } from "@hooks/useAsyncAction";
 
-import "../../styles/Sidebar.css";
+import "@styles/Sidebar.css";
 import { Plus, Github, PanelLeftClose } from "lucide-react";
 
 const Sidebar = ({

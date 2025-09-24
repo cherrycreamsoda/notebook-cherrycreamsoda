@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 
-import "../../styles/FloatingActionButton.css";
+import "@styles/FloatingActionButton.css";
 import {
   Plus,
   LayoutDashboard,

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Portal from "./Portal"; // relative to widgets folder
-import "../../styles/NoteTypeDropdown.css";
+import "@styles/NoteTypeDropdown.css";
 import {
   ChevronDown,
   FileText,

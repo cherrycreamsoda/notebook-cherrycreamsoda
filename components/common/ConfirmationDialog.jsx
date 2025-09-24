@@ -1,15 +1,13 @@
 "use client";
 
-import "../../styles/ConfirmationDialog.css";
+import "@styles/ConfirmationDialog.css";
 
 const ConfirmationDialog = ({
   message,
   onConfirm,
   onCancel,
-  position = { top: 0, left: 0 },
   confirmText = "Yes",
   cancelText = "No",
-  type = "default",
   title = null,
 }) => {
   const OctagonalIcon = () => (
@@ -18,7 +16,6 @@ const ConfirmationDialog = ({
       height="440"
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
       className="octagonal-icon"
     >
       <path
@@ -29,7 +26,7 @@ const ConfirmationDialog = ({
       />
       <path
         d="M12 8v4M12 16h.01"
-        stroke="#F5F5DC"
+        stroke="#e75656ff"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

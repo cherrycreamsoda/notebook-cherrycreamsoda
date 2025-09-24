@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import "../../styles/LoadingSpinner.css";
+import "@styles/LoadingSpinner.css";
 import { Loader2 } from "lucide-react";
 
 const LoadingSpinner = ({
