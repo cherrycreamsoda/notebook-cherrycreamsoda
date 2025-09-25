@@ -17,6 +17,8 @@ import {
   CheckSquare,
   Bell,
   Table,
+  Lock,
+  Unlock,
 } from "lucide-react";
 
 const NOTE_TYPE_ICONS = {
@@ -311,7 +313,15 @@ const NoteItem = ({
       onClick={onSelect}
     >
       <div className="note-type-icon">
-        <TypeIcon size={14} />
+        {note.passkey !== null ? (
+          note.locked ? (
+            <Lock size={14} className="note-lock-icon locked" />
+          ) : (
+            <Unlock size={14} className="note-lock-icon unlocked" />
+          )
+        ) : (
+          <TypeIcon size={14} />
+        )}
       </div>
       <div className="note-content">
         <h4 className="note-title">{String(note.title || "Untitled")}</h4>
@@ -354,7 +364,7 @@ const NoteItem = ({
               className="note-action-btn delete"
               onClick={onDelete}
               title="Delete note"
-              disabled={loadingStates[`delete-${note._id}`]}
+              disabled={loadingStates[`delete-${note._id}`] || note.locked}
             >
               {loadingStates[`delete-${note._id}`] ? (
                 <LoadingSpinner size={12} inline={true} showMessage={false} />
@@ -366,7 +376,7 @@ const NoteItem = ({
               className={`note-action-btn pin ${note.pinned ? "active" : ""}`}
               onClick={onTogglePin}
               title={note.pinned ? "Unpin note" : "Pin note"}
-              disabled={loadingStates[`pin-${note._id}`]}
+              disabled={loadingStates[`pin-${note._id}`] || note.locked}
             >
               {loadingStates[`pin-${note._id}`] ? (
                 <LoadingSpinner size={12} inline={true} showMessage={false} />

@@ -15,7 +15,17 @@ export async function PUT(req, context) {
   }
 
   try {
+    const { passkey } = await req.json();
+
+    if (!passkey) {
+      return NextResponse.json(
+        { success: false, error: "Passkey is required" },
+        { status: 400 }
+      );
+    }
+
     const note = await Note.findById(id);
+
     if (!note) {
       return NextResponse.json(
         { success: false, error: "Note not found" },
@@ -23,25 +33,17 @@ export async function PUT(req, context) {
       );
     }
 
-    if (note.locked) {
+    if (note.passkey !== passkey) {
       return NextResponse.json(
-        { success: false, error: "Cannot restore a locked note" },
-        { status: 403 }
+        { success: false, error: "Incorrect passkey" },
+        { status: 401 }
       );
     }
 
-    const updatedNote = await Note.findByIdAndUpdate(
-      id,
-      { deleted: false },
-      { new: true }
-    );
-    if (!updatedNote) {
-      return NextResponse.json(
-        { success: false, error: "Note not found after update" },
-        { status: 404 }
-      );
-    }
-    return NextResponse.json({ success: true, data: updatedNote });
+    note.locked = false;
+    await note.save();
+
+    return NextResponse.json({ success: true, data: note });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import LoadingSpinner from "@components/common/LoadingSpinner";
 import EditorContainer from "@components/editors/EditorContainer";
+import PasscodeOverlay from "@components/PasscodeOverlay"; // Import PasscodeOverlay
 
 import { useAsyncAction } from "@hooks/useAsyncAction";
 
@@ -15,6 +16,8 @@ import {
   Maximize,
   Minimize,
   X,
+  Lock,
+  Unlock,
 } from "lucide-react";
 
 const MainContent = ({
@@ -31,8 +34,13 @@ const MainContent = ({
 }) => {
   const { loading: pinLoading, execute: executePin } = useAsyncAction();
   const { loading: deleteLoading, execute: executeDelete } = useAsyncAction();
+  const { loading: lockLoading, execute: executeLock } = useAsyncAction(); // Add lock loading state
   const headerRef = useRef(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showPasscodeSetupOverlay, setShowPasscodeSetupOverlay] =
+    useState(false); // State for passcode setup overlay
+  const [passcodeSetupMessage, setPasscodeSetupMessage] = useState(""); // State for passcode setup message
+  const [passcodeSetupError, setPasscodeSetupError] = useState(false); // State for passcode setup error
 
   useEffect(() => {
     if (headerBackgroundEnabled !== undefined) {
@@ -60,6 +68,82 @@ const MainContent = ({
       () => onDeleteNote(selectedNote._id),
       "Failed to delete note"
     );
+  };
+
+  const handleToggleLock = async () => {
+    if (!selectedNote) return;
+
+    if (selectedNote.passkey === null) {
+      // If passkey is null, initiate setup
+      setShowPasscodeSetupOverlay(true);
+      setPasscodeSetupMessage("");
+      setPasscodeSetupError(false);
+    } else {
+      // If passkey exists, toggle lock status
+      const newLockedStatus = !selectedNote.locked;
+      executeLock(async () => {
+        const endpoint = newLockedStatus
+          ? `/api/notes/${selectedNote._id}/lock`
+          : `/api/notes/${selectedNote._id}/unlock`;
+        const method = "PUT";
+        const body = newLockedStatus
+          ? { passkey: selectedNote.passkey }
+          : { passkey: selectedNote.passkey }; // Passkey is needed for unlock
+
+        const res = await fetch(endpoint, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (data.success) {
+          onUpdateNote(data.data);
+        } else {
+          throw new Error(data.error);
+        }
+      }, `Failed to ${newLockedStatus ? "lock" : "unlock"} note`);
+    }
+  };
+
+  const handlePasskeySetup = async (enteredPasscode) => {
+    setPasscodeSetupMessage("");
+    setPasscodeSetupError(false);
+
+    try {
+      const res = await fetch(`/api/notes/${selectedNote._id}/lock`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ passkey: enteredPasscode }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setPasscodeSetupMessage("Your password is set");
+        setPasscodeSetupError(false);
+        setTimeout(() => {
+          setShowPasscodeSetupOverlay(false);
+          onUpdateNote(data.data); // Update the note in the parent state
+        }, 3000); // Dismiss after 3 seconds
+      } else {
+        setPasscodeSetupMessage("Try Again");
+        setPasscodeSetupError(true);
+      }
+    } catch (error) {
+      console.error("[v0] Passkey setup API error:", error);
+      setPasscodeSetupMessage("Error setting password");
+      setPasscodeSetupError(true);
+    }
+  };
+
+  const handleDismissPasscodeSetupOverlay = () => {
+    setShowPasscodeSetupOverlay(false);
+    setPasscodeSetupMessage("");
+    setPasscodeSetupError(false);
   };
 
   const getHeaderClasses = () => {
@@ -121,6 +205,8 @@ const MainContent = ({
         onDelete={handleDelete}
         pinLoading={pinLoading}
         deleteLoading={deleteLoading}
+        onToggleLock={handleToggleLock} // Pass onToggleLock to MainHeader
+        lockLoading={lockLoading} // Pass lockLoading to MainHeader
       />
 
       <div className="main-content-inner">
@@ -129,6 +215,15 @@ const MainContent = ({
           onUpdateNote={onUpdateNote}
         />
       </div>
+
+      {showPasscodeSetupOverlay && (
+        <PasscodeOverlay
+          onPasscodeEntered={handlePasskeySetup}
+          onDismiss={handleDismissPasscodeSetupOverlay}
+          message={passcodeSetupMessage}
+          isError={passcodeSetupError}
+        />
+      )}
     </div>
   );
 };
@@ -147,6 +242,8 @@ const MainHeader = React.forwardRef(
       onDelete,
       pinLoading,
       deleteLoading,
+      onToggleLock, // Receive onToggleLock prop
+      lockLoading, // Receive lockLoading prop
     },
     ref
   ) => (
@@ -168,19 +265,51 @@ const MainHeader = React.forwardRef(
           onClick={onToggleFullscreen}
           title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
         >
-          {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+          {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}\
         </button>
       </div>
 
       {selectedNote && (
         <div className="note-header-actions">
+          {selectedNote.passkey === null ? (
+            <button
+              className="note-header-btn lock-btn"
+              onClick={onToggleLock}
+              title="Lock note"
+              disabled={lockLoading}
+            >
+              {lockLoading ? (
+                <LoadingSpinner size={14} inline={true} showMessage={false} />
+              ) : (
+                <Lock size={14} />
+              )}
+            </button>
+          ) : (
+            <button
+              className={`note-header-btn lock-btn ${
+                selectedNote.locked ? "active" : ""
+              }`}
+              onClick={onToggleLock}
+              title={selectedNote.locked ? "Unlock note" : "Lock note"}
+              disabled={lockLoading}
+            >
+              {lockLoading ? (
+                <LoadingSpinner size={14} inline={true} showMessage={false} />
+              ) : selectedNote.locked ? (
+                <Lock size={14} />
+              ) : (
+                <Unlock size={14} />
+              )}
+            </button>
+          )}
+
           <button
             className={`note-header-btn pin-btn ${
               selectedNote.pinned ? "active" : ""
             }`}
             onClick={onTogglePin}
             title={selectedNote.pinned ? "Unpin note" : "Pin note"}
-            disabled={pinLoading}
+            disabled={pinLoading || selectedNote.locked} // Disable when locked
           >
             {pinLoading ? (
               <LoadingSpinner size={14} inline={true} showMessage={false} />
@@ -193,7 +322,7 @@ const MainHeader = React.forwardRef(
             className="note-header-btn delete-btn"
             onClick={onDelete}
             title="Delete note"
-            disabled={deleteLoading}
+            disabled={deleteLoading || selectedNote.locked} // Disable when locked
           >
             {deleteLoading ? (
               <LoadingSpinner size={14} inline={true} showMessage={false} />

@@ -15,7 +15,21 @@ export async function PUT(req, context) {
   }
 
   try {
-    const note = await Note.findById(id);
+    const { passkey } = await req.json();
+
+    if (!passkey || passkey.length !== 6) {
+      return NextResponse.json(
+        { success: false, error: "Invalid passkey. Must be 6 digits." },
+        { status: 400 }
+      );
+    }
+
+    const note = await Note.findByIdAndUpdate(
+      id,
+      { locked: true, passkey: passkey },
+      { new: true }
+    );
+
     if (!note) {
       return NextResponse.json(
         { success: false, error: "Note not found" },
@@ -23,25 +37,7 @@ export async function PUT(req, context) {
       );
     }
 
-    if (note.locked) {
-      return NextResponse.json(
-        { success: false, error: "Cannot restore a locked note" },
-        { status: 403 }
-      );
-    }
-
-    const updatedNote = await Note.findByIdAndUpdate(
-      id,
-      { deleted: false },
-      { new: true }
-    );
-    if (!updatedNote) {
-      return NextResponse.json(
-        { success: false, error: "Note not found after update" },
-        { status: 404 }
-      );
-    }
-    return NextResponse.json({ success: true, data: updatedNote });
+    return NextResponse.json({ success: true, data: note });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

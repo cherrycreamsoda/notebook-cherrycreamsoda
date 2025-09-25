@@ -1,9 +1,11 @@
 "use client";
 import React from "react";
-
 import EditorToolbar from "../widgets/EditorToolbar";
 import ConfirmationDialog from "@components/common/ConfirmationDialog";
 import { useBaseEditor } from "@hooks/useBaseEditor.js";
+import LockedEditorOverlay from "./LockedEditorOverlay"; // Import LockedEditorOverlay
+import PasscodeOverlay from "@components/PasscodeOverlay"; // Import PasscodeOverlay
+import { useState } from "react"; // Import useState
 
 const BaseEditor = ({
   selectedNote,
@@ -32,6 +34,49 @@ const BaseEditor = ({
     updateCounts,
   } = useBaseEditor({ selectedNote, onUpdateNote });
 
+  const [showPasscodeOverlay, setShowPasscodeOverlay] = useState(false);
+  const [passcodeMessage, setPasscodeMessage] = useState("");
+  const [passcodeError, setPasscodeError] = useState(false);
+
+  const handleUnlockAttempt = async (enteredPasscode) => {
+    setPasscodeMessage("");
+    setPasscodeError(false);
+
+    try {
+      const res = await fetch(`/api/notes/${selectedNote._id}/unlock`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ passkey: enteredPasscode }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setPasscodeMessage("Note unlocked!");
+        setPasscodeError(false);
+        setTimeout(() => {
+          setShowPasscodeOverlay(false);
+          onUpdateNote(data.data); // Update the note in the parent state
+        }, 1000);
+      } else {
+        setPasscodeMessage("Try Again");
+        setPasscodeError(true);
+      }
+    } catch (error) {
+      console.error("[v0] Unlock API error:", error);
+      setPasscodeMessage("Error unlocking note");
+      setPasscodeError(true);
+    }
+  };
+
+  const handleDismissPasscodeOverlay = () => {
+    setShowPasscodeOverlay(false);
+    setPasscodeMessage("");
+    setPasscodeError(false);
+  };
+
   return (
     <>
       {showToolbar && (
@@ -45,6 +90,10 @@ const BaseEditor = ({
 
       <div className="editor-content-area">
         <div className={`note-editor ${editorClassName}`}>
+          {selectedNote.locked && (
+            <LockedEditorOverlay onClick={() => setShowPasscodeOverlay(true)} />
+          )}
+
           {showTitle && (
             <div className="note-header">
               <input
@@ -55,6 +104,7 @@ const BaseEditor = ({
                 onKeyDown={handleTitleKeyDown}
                 placeholder="Untitled"
                 className="note-title-input"
+                disabled={selectedNote.locked} // Disable input when locked
               />
               {isSaving && (
                 <div className="saving-indicator">
@@ -72,6 +122,7 @@ const BaseEditor = ({
                 selectedNote,
                 onContentChange: handleContentChange,
                 updateCounts,
+                readOnly: selectedNote.locked, // Make editor read-only when locked
               })}
             </div>
           </div>
@@ -98,6 +149,15 @@ const BaseEditor = ({
           confirmText="Change Type"
           cancelText="Cancel"
           type="warning"
+        />
+      )}
+
+      {showPasscodeOverlay && (
+        <PasscodeOverlay
+          onPasscodeEntered={handleUnlockAttempt}
+          onDismiss={handleDismissPasscodeOverlay}
+          message={passcodeMessage}
+          isError={passcodeError}
         />
       )}
     </>

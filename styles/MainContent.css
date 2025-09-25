@@ -149,6 +149,14 @@
   cursor: not-allowed;
 }
 
+.note-lock-icon.locked {
+  color: #dc2626; /* blood-red */
+}
+
+.note-lock-icon.unlocked {
+  color: #22c55e; /* green */
+}
+
 .pin-btn.active {
   color: #fbbf24;
 }
