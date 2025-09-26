@@ -1,0 +1,205 @@
+PS C:\Work\notebook-react> npm run dev
+
+> notebook-cherrycreamsoda@2.0.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
+   ▲ Next.js 15.5.2
+   - Local:        http://localhost:3001    
+   - Network:      http://192.168.0.103:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 20.1s
+ ○ Compiling / ...
+ ✓ Compiled / in 5.2s (815 modules)
+ GET / 200 in 8085ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /api/health in 1703ms (474 modules)
+ ✓ Compiled in 1349ms (359 modules)
+ GET /favicon.ico 200 in 15611ms
+ GET /api/health 200 in 17759ms
+ ○ Compiling /api/notes ...
+ ✓ Compiled /api/notes in 1095ms (842 modules)
+ GET /api/notes?view=all 200 in 2713ms
+ GET /api/notes?view=notes 200 in 2723ms
+ ○ Compiling /api/notes/[id]/unlock ...
+ ✓ Compiled /api/notes/[id]/unlock in 3.6s (844 modules)
+ PUT /api/notes/68d4669311b48938a6038aca/unlock 200 in 6785ms
+ PUT /api/notes/68d4669311b48938a6038aca/unlock 200 in 472ms
+ PUT /api/notes/68d4669311b48938a6038aca/unlock 200 in 436ms
+ PUT /api/notes/68d4669311b48938a6038aca/unlock 200 in 442ms
+ ○ Compiling /api/notes/[id] ...
+ ✓ Compiled /api/notes/[id] in 951ms (846 modules)
+ PUT /api/notes/[object%20Object] 400 in 2976ms
+ PUT /api/notes/[object%20Object] 400 in 2967ms
+ PUT /api/notes/[object%20Object] 400 in 3684ms
+ PUT /api/notes/[object%20Object] 400 in 2551ms
+ PUT /api/notes/[object%20Object] 400 in 2549ms
+Terminate batch job (Y/N)? ^C
+
+PS C:\Work\notebook-react> npm run dev
+
+> notebook-cherrycreamsoda@2.0.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by process 12008, using available port 3001 instead.
+   ▲ Next.js 15.5.2
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.0.103:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 4.8s
+ ○ Compiling / ...
+ ✓ Compiled / in 4.4s (815 modules)
+ GET / 200 in 6181ms
+ ○ Compiling /api/health ...
+ ✓ Compiled /api/health in 2.1s (474 modules)
+ ✓ Compiled in 2.4s (359 modules)
+ GET /favicon.ico 200 in 8047ms
+ GET /api/health 200 in 10379ms
+ ○ Compiling /api/notes ...
+ ✓ Compiled /api/notes in 1438ms (842 modules)
+ GET /api/notes?view=all 200 in 2970ms
+ GET /api/notes?view=notes 200 in 2982ms
+ ○ Compiling /api/notes/[id]/lock ...
+ ✓ Compiled /api/notes/[id]/lock in 1001ms (844 modules)
+ PUT /api/notes/68d4669311b48938a6038aca/lock 200 in 3624ms
+ ○ Compiling /api/notes/[id] ...
+ ✓ Compiled /api/notes/[id] in 891ms (846 modules)
+ PUT /api/notes/[object%20Object] 400 in 3252ms
+ GET / 200 in 649ms
+ GET /favicon.ico 200 in 111ms
+ GET /api/health 200 in 104ms
+ GET /api/notes?view=all 200 in 393ms
+ GET /api/notes?view=notes 200 in 400ms
+ DELETE /api/notes/68d5cb5725e7120d717839b1 200 in 207ms
+ GET /api/notes?view=notes 200 in 205ms
+ GET /api/notes?view=deleted 200 in 288ms
+ ○ Compiling /api/notes/[id]/restore ...
+ ✓ Compiled /api/notes/[id]/restore in 1731ms (846 modules)
+ PUT /api/notes/68d5cb5725e7120d717839b1/restore 200 in 4806ms
+ GET /api/notes?view=deleted 200 in 298ms
+ GET /api/notes?view=notes 200 in 326ms
+ ○ Compiling /api/notes/[id]/lock ...
+ ✓ Compiled /api/notes/[id]/lock in 562ms (489 modules)
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 940ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 385ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 375ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 203ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 210ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 206ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 208ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 215ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 251ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 253ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 238ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 172ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 181ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 185ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 247ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 283ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 432ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 437ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 443ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 1414ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 1314ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 172ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 175ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 182ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 187ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 211ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 269ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 273ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 282ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 321ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 243ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 228ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 235ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 243ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 269ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 278ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 1470ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 280ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 284ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 294ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 301ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 313ms
+ PUT /api/notes/68d564d88ff72697e4560e0e/lock 200 in 326ms
+ PUT /api/notes/[object%20Object] 400 in 63ms
+ PUT /api/notes/[object%20Object] 400 in 132ms
+ PUT /api/notes/[object%20Object] 400 in 147ms
+ PUT /api/notes/[object%20Object] 400 in 156ms
+ PUT /api/notes/[object%20Object] 400 in 152ms
+ PUT /api/notes/[object%20Object] 400 in 27ms
+ PUT /api/notes/[object%20Object] 400 in 90ms
+ PUT /api/notes/[object%20Object] 400 in 127ms
+ PUT /api/notes/[object%20Object] 400 in 22ms
+ PUT /api/notes/[object%20Object] 400 in 69ms
+ PUT /api/notes/[object%20Object] 400 in 95ms
+ PUT /api/notes/[object%20Object] 400 in 22ms
+ PUT /api/notes/[object%20Object] 400 in 24ms
+ PUT /api/notes/[object%20Object] 400 in 52ms
+ PUT /api/notes/[object%20Object] 400 in 80ms
+ PUT /api/notes/[object%20Object] 400 in 114ms
+ PUT /api/notes/[object%20Object] 400 in 22ms
+ PUT /api/notes/[object%20Object] 400 in 59ms
+ PUT /api/notes/[object%20Object] 400 in 132ms
+ PUT /api/notes/[object%20Object] 400 in 159ms
+ PUT /api/notes/[object%20Object] 400 in 257ms
+ PUT /api/notes/[object%20Object] 400 in 189ms
+ PUT /api/notes/[object%20Object] 400 in 199ms
+ PUT /api/notes/[object%20Object] 400 in 233ms
+ PUT /api/notes/[object%20Object] 400 in 256ms
+ PUT /api/notes/[object%20Object] 400 in 217ms
+ PUT /api/notes/[object%20Object] 400 in 106ms
+ PUT /api/notes/[object%20Object] 400 in 177ms
+ PUT /api/notes/[object%20Object] 400 in 181ms
+ PUT /api/notes/[object%20Object] 400 in 136ms
+ PUT /api/notes/[object%20Object] 400 in 134ms
+ PUT /api/notes/[object%20Object] 400 in 31ms
+ PUT /api/notes/[object%20Object] 400 in 47ms
+ PUT /api/notes/[object%20Object] 400 in 139ms
+ PUT /api/notes/[object%20Object] 400 in 140ms
+ PUT /api/notes/[object%20Object] 400 in 139ms
+ PUT /api/notes/[object%20Object] 400 in 83ms
+ PUT /api/notes/[object%20Object] 400 in 29ms
+ PUT /api/notes/[object%20Object] 400 in 114ms
+ PUT /api/notes/[object%20Object] 400 in 53ms
+ PUT /api/notes/[object%20Object] 400 in 100ms
+ PUT /api/notes/[object%20Object] 400 in 100ms
+ PUT /api/notes/[object%20Object] 400 in 100ms
+
+
+When I lock or unlock note, it gets locked or unlocked but I am getting these errors, it's password gets saved too but again, errors. I will also attach some logs that will help you identify. So I attached 2 potential problems  
+## Error Type
+Runtime Error
+## Error Message
+Failed to update note: Invalid note ID
+    at execute (hooks\useAsyncAction.js:18:13)
+## Code Frame
+  16 |       const message = `${errorMessage}: ${err.message}`;
+  17 |       setError(message);
+> 18 |       throw new Error(message);
+     |             ^
+  19 |     } finally {
+  20 |       setLoading(false);
+  21 |     }
+Next.js version: 15.5.2 (Webpack)
+## Error Type
+Runtime Error
+## Error Message
+Failed to update note: Invalid note ID
+    at execute (hooks\useAsyncAction.js:18:13)
+## Code Frame
+  16 |       const message = `${errorMessage}: ${err.message}`;
+  17 |       setError(message);
+> 18 |       throw new Error(message);
+     |             ^
+  19 |     } finally {
+  20 |       setLoading(false);
+  21 |     }
+Next.js version: 15.5.2 (Webpack) 
+ 
+
