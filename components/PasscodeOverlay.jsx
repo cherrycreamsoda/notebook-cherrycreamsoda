@@ -13,6 +13,7 @@ const PasscodeOverlay = ({
   const [feedbackMessage, setFeedbackMessage] = useState(message);
   const [showError, setShowError] = useState(isError);
   const inputRef = useRef(null);
+  const submittedRef = useRef(false);
 
   useEffect(() => {
     setFeedbackMessage(message);
@@ -22,6 +23,7 @@ const PasscodeOverlay = ({
         setShowError(false);
         setFeedbackMessage("");
         setPasscode([]);
+        submittedRef.current = false; // reset latch after showing error
       }, 4000); // Reset after 4 seconds for "Try Again"
       return () => clearTimeout(timer);
     }
@@ -30,7 +32,7 @@ const PasscodeOverlay = ({
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        onDismiss();
+        handleDismiss(); // use local dismiss to reset latch/state
       } else if (event.key >= "0" && event.key <= "9" && passcode.length < 6) {
         setPasscode((prev) => [...prev, event.key]);
       } else if (event.key === "Backspace" && passcode.length > 0) {
@@ -42,16 +44,25 @@ const PasscodeOverlay = ({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [passcode, onDismiss]);
+  }, [passcode]); // remove onDismiss from deps; we call handleDismiss above
 
   useEffect(() => {
-    if (passcode.length === 6) {
+    if (passcode.length === 6 && !submittedRef.current) {
+      submittedRef.current = true;
       onPasscodeEntered(passcode.join(""));
     }
-  }, [passcode, onPasscodeEntered]);
+  }, [passcode]); // intentionally not depending on onPasscodeEntered to avoid refiring
+
+  const handleDismiss = () => {
+    submittedRef.current = false;
+    setPasscode([]);
+    setFeedbackMessage("");
+    setShowError(false);
+    onDismiss();
+  };
 
   return (
-    <div className={styles.overlay} onClick={onDismiss}>
+    <div className={styles.overlay} onClick={handleDismiss}>
       <div className={styles.content} onClick={(e) => e.stopPropagation()}>
         <div className={styles.passcodeCircles}>
           {[...Array(6)].map((_, index) => (
