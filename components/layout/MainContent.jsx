@@ -265,7 +265,7 @@ const MainHeader = React.forwardRef(
           onClick={onToggleFullscreen}
           title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
         >
-          {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}\
+          {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
         </button>
       </div>
 
