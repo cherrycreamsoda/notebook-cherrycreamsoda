@@ -624,15 +624,12 @@
 .note-item.pinned .note-action-btn:not(.pin) {
   opacity: 0 !important;
   pointer-events: none !important;
-  transform: translateY(4px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
 /* on hover show other action buttons again */
 .note-item.pinned:hover .note-action-btn:not(.pin) {
   opacity: 1 !important;
   pointer-events: auto !important;
-  transform: translateY(0) !important;
 }
 
 /* ensure pin button is visible and interactive */
