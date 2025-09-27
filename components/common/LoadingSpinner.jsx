@@ -21,7 +21,7 @@ const LoadingSpinner = ({
             clearInterval(interval);
             return 100;
           }
-          return prev + Math.random() * 3 + 1; // Random increment between 1-4
+          return prev + Math.random() * 3 + 1;
         });
       }, 100);
 

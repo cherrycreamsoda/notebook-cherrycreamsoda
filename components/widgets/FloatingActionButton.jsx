@@ -65,7 +65,7 @@ const FloatingActionButton = ({
     holdTimeoutRef.current = setTimeout(() => {
       setIsExpanded(true);
       setIsHolding(false);
-    }, 600); // 600ms hold time
+    }, 600);
   };
 
   const handleMouseUp = (e) => {

@@ -3,8 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import LoadingSpinner from "@components/common/LoadingSpinner";
 import EditorContainer from "@components/editors/EditorContainer";
-import PasscodeOverlay from "@components/PasscodeOverlay"; // Import PasscodeOverlay
-
+import PasscodeOverlay from "@components/PasscodeOverlay";
 import { useAsyncAction } from "@hooks/useAsyncAction";
 
 import "@styles/MainContent.css";
@@ -34,21 +33,19 @@ const MainContent = ({
 }) => {
   const { loading: pinLoading, execute: executePin } = useAsyncAction();
   const { loading: deleteLoading, execute: executeDelete } = useAsyncAction();
-  const { loading: lockLoading, execute: executeLock } = useAsyncAction(); // Add lock loading state
+  const { loading: lockLoading, execute: executeLock } = useAsyncAction();
   const headerRef = useRef(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showPasscodeSetupOverlay, setShowPasscodeSetupOverlay] =
-    useState(false); // State for passcode setup overlay
-  const [passcodeSetupMessage, setPasscodeSetupMessage] = useState(""); // State for passcode setup message
-  const [passcodeSetupError, setPasscodeSetupError] = useState(false); // State for passcode setup error
-
+    useState(false);
+  const [passcodeSetupMessage, setPasscodeSetupMessage] = useState("");
+  const [passcodeSetupError, setPasscodeSetupError] = useState(false);
   useEffect(() => {
     if (headerBackgroundEnabled !== undefined) {
       setIsTransitioning(true);
       const timer = setTimeout(() => {
         setIsTransitioning(false);
-      }, 800); // Match CSS transition duration
-
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [headerBackgroundEnabled]);
@@ -74,12 +71,10 @@ const MainContent = ({
     if (!selectedNote) return;
 
     if (selectedNote.passkey === null) {
-      // If passkey is null, initiate setup
       setShowPasscodeSetupOverlay(true);
       setPasscodeSetupMessage("");
       setPasscodeSetupError(false);
     } else {
-      // If passkey exists, toggle lock status
       const newLockedStatus = !selectedNote.locked;
       executeLock(async () => {
         const endpoint = newLockedStatus
@@ -88,8 +83,7 @@ const MainContent = ({
         const method = "PUT";
         const body = newLockedStatus
           ? { passkey: selectedNote.passkey }
-          : { passkey: selectedNote.passkey }; // Passkey is needed for unlock
-
+          : { passkey: selectedNote.passkey };
         const res = await fetch(endpoint, {
           method,
           headers: {
@@ -127,14 +121,14 @@ const MainContent = ({
         setPasscodeSetupError(false);
         setTimeout(() => {
           setShowPasscodeSetupOverlay(false);
-          onUpdateNote(data.data); // Update the note in the parent state
-        }, 3000); // Dismiss after 3 seconds
+          onUpdateNote(data.data);
+        }, 3000);
       } else {
         setPasscodeSetupMessage("Try Again");
         setPasscodeSetupError(true);
       }
     } catch (error) {
-      console.error("[v0] Passkey setup API error:", error);
+      console.error("Passkey setup API error:", error);
       setPasscodeSetupMessage("Error setting password");
       setPasscodeSetupError(true);
     }
@@ -205,8 +199,8 @@ const MainContent = ({
         onDelete={handleDelete}
         pinLoading={pinLoading}
         deleteLoading={deleteLoading}
-        onToggleLock={handleToggleLock} // Pass onToggleLock to MainHeader
-        lockLoading={lockLoading} // Pass lockLoading to MainHeader
+        onToggleLock={handleToggleLock}
+        lockLoading={lockLoading}
       />
 
       <div className="main-content-inner">
@@ -242,8 +236,8 @@ const MainHeader = React.forwardRef(
       onDelete,
       pinLoading,
       deleteLoading,
-      onToggleLock, // Receive onToggleLock prop
-      lockLoading, // Receive lockLoading prop
+      onToggleLock,
+      lockLoading,
     },
     ref
   ) => (
@@ -309,7 +303,7 @@ const MainHeader = React.forwardRef(
             }`}
             onClick={onTogglePin}
             title={selectedNote.pinned ? "Unpin note" : "Pin note"}
-            disabled={pinLoading || selectedNote.locked} // Disable when locked
+            disabled={pinLoading || selectedNote.locked}
           >
             {pinLoading ? (
               <LoadingSpinner size={14} inline={true} showMessage={false} />
@@ -322,7 +316,7 @@ const MainHeader = React.forwardRef(
             className="note-header-btn delete-btn"
             onClick={onDelete}
             title="Delete note"
-            disabled={deleteLoading || selectedNote.locked} // Disable when locked
+            disabled={deleteLoading || selectedNote.locked}
           >
             {deleteLoading ? (
               <LoadingSpinner size={14} inline={true} showMessage={false} />

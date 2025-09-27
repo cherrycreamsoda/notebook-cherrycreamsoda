@@ -38,7 +38,6 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
     async (field, value) => {
       if (!selectedNote) return;
 
-      // Collect any pending updates
       const updates = { ...pendingUpdates, [field]: value };
       setPendingUpdates({});
 
@@ -59,15 +58,6 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
     setIsUserEditing(true);
     setPendingUpdates((prev) => ({ ...prev, [NOTE_FIELDS.TITLE]: newTitle }));
     debouncedUpdate(NOTE_FIELDS.TITLE, newTitle);
-  };
-
-  const handleContentKeyDown = (e, content) => {
-    if (e.key === "Enter") {
-      debouncedUpdate.cancel?.(); // cancel the debounce timer
-      const updates = { ...pendingUpdates, [NOTE_FIELDS.CONTENT]: content };
-      setPendingUpdates({});
-      handleUpdate(selectedNote._id, updates); // force immediate save with all pending updates
-    }
   };
 
   const handleContentChange = useCallback(

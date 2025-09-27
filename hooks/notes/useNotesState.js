@@ -47,25 +47,20 @@ export const useNotesState = () => {
 
     console.log("Selecting note:", note._id, "title:", note.title);
 
-    // First, check if we have the full note in cache
     const cachedNote = cache.getCachedNote(note._id);
 
     if (cachedNote) {
-      // Use cached version immediately
       setSelectedNote(cachedNote);
       setCreateError(null);
       console.log("Using cached note for selection");
       return cachedNote;
     }
 
-    // If not in cache, check if the note from the list has full content
-    // Notes from list might only have preview data
     if (
       note.content &&
       typeof note.content === "object" &&
       Object.keys(note.content).length > 0
     ) {
-      // Note seems to have full content, cache it and use it
       cache.setCachedNote(note._id, note);
       setSelectedNote(note);
       setCreateError(null);
@@ -73,13 +68,11 @@ export const useNotesState = () => {
       return note;
     }
 
-    // If we have a fetchNoteById function, fetch the full note
     if (fetchNoteById) {
       console.log("Fetching full note from server");
       try {
         const fullNote = await fetchNoteById(note._id);
         if (fullNote) {
-          // Cache the fetched note
           cache.setCachedNote(fullNote._id, fullNote);
           setSelectedNote(fullNote);
           setCreateError(null);
@@ -91,7 +84,6 @@ export const useNotesState = () => {
       }
     }
 
-    // Fallback: use the note as-is
     setSelectedNote(note);
     setCreateError(null);
     console.log("Using note as-is (fallback)");
@@ -99,19 +91,18 @@ export const useNotesState = () => {
   };
 
   return {
-    // State
     notes,
     allNotes,
     selectedNote,
     lastCreatedNote,
     createError,
-    // State setters
+
     setNotes,
     setAllNotes,
     setSelectedNote,
     setLastCreatedNote,
     setCreateError,
-    // Helper functions
+
     updateNoteInArrays,
     removeNoteFromArrays,
     selectNote,

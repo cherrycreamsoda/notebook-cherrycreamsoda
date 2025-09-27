@@ -3,10 +3,9 @@ import React from "react";
 import EditorToolbar from "../widgets/EditorToolbar";
 import ConfirmationDialog from "@components/common/ConfirmationDialog";
 import { useBaseEditor } from "@hooks/useBaseEditor.js";
-import LockedEditorOverlay from "./LockedEditorOverlay"; // Import LockedEditorOverlay
-import PasscodeOverlay from "@components/PasscodeOverlay"; // Import PasscodeOverlay
-import { useState } from "react"; // Import useState
-
+import LockedEditorOverlay from "./LockedEditorOverlay";
+import PasscodeOverlay from "@components/PasscodeOverlay";
+import { useState } from "react";
 const BaseEditor = ({
   selectedNote,
   onUpdateNote,
@@ -58,14 +57,14 @@ const BaseEditor = ({
         setPasscodeError(false);
         setTimeout(() => {
           setShowPasscodeOverlay(false);
-          onUpdateNote(data.data); // Update the note in the parent state
+          onUpdateNote(data.data);
         }, 1000);
       } else {
         setPasscodeMessage("Try Again");
         setPasscodeError(true);
       }
     } catch (error) {
-      console.error("[v0] Unlock API error:", error);
+      console.error("Unlock API error:", error);
       setPasscodeMessage("Error unlocking note");
       setPasscodeError(true);
     }
@@ -104,7 +103,7 @@ const BaseEditor = ({
                 onKeyDown={handleTitleKeyDown}
                 placeholder="Untitled"
                 className="note-title-input"
-                disabled={selectedNote.locked} // Disable input when locked
+                disabled={selectedNote.locked}
               />
               {isSaving && (
                 <div className="saving-indicator">
@@ -122,7 +121,7 @@ const BaseEditor = ({
                 selectedNote,
                 onContentChange: handleContentChange,
                 updateCounts,
-                readOnly: selectedNote.locked, // Make editor read-only when locked
+                readOnly: selectedNote.locked,
               })}
             </div>
           </div>

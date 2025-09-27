@@ -23,8 +23,8 @@ const PasscodeOverlay = ({
         setShowError(false);
         setFeedbackMessage("");
         setPasscode([]);
-        submittedRef.current = false; // reset latch after showing error
-      }, 4000); // Reset after 4 seconds for "Try Again"
+        submittedRef.current = false;
+      }, 4000);
       return () => clearTimeout(timer);
     }
   }, [message, isError]);
@@ -32,7 +32,7 @@ const PasscodeOverlay = ({
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        handleDismiss(); // use local dismiss to reset latch/state
+        handleDismiss();
       } else if (event.key >= "0" && event.key <= "9" && passcode.length < 6) {
         setPasscode((prev) => [...prev, event.key]);
       } else if (event.key === "Backspace" && passcode.length > 0) {
@@ -44,15 +44,13 @@ const PasscodeOverlay = ({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [passcode]); // remove onDismiss from deps; we call handleDismiss above
-
+  }, [passcode]);
   useEffect(() => {
     if (passcode.length === 6 && !submittedRef.current) {
       submittedRef.current = true;
       onPasscodeEntered(passcode.join(""));
     }
-  }, [passcode]); // intentionally not depending on onPasscodeEntered to avoid refiring
-
+  }, [passcode]);
   const handleDismiss = () => {
     submittedRef.current = false;
     setPasscode([]);

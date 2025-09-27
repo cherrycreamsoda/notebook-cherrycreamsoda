@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import Portal from "./Portal"; // relative to widgets folder
+import Portal from "./Portal";
 import "@styles/NoteTypeDropdown.css";
 import {
   ChevronDown,
@@ -59,7 +59,6 @@ const NoteTypeDropdown = ({
   const selectedTypeData =
     NOTE_TYPES.find((t) => t.value === selectedType) || NOTE_TYPES[0];
 
-  // blinking effect
   useEffect(() => {
     if (shouldBlink) {
       setIsBlinking(true);
@@ -68,7 +67,6 @@ const NoteTypeDropdown = ({
     }
   }, [shouldBlink]);
 
-  // close on outside click
   useEffect(() => {
     function onDocClick(e) {
       if (triggerRef.current && triggerRef.current.contains(e.target)) return;
@@ -79,13 +77,12 @@ const NoteTypeDropdown = ({
     return () => document.removeEventListener("pointerdown", onDocClick, true);
   }, []);
 
-  // compute menu position
   useEffect(() => {
     function compute() {
       if (!triggerRef.current) return;
       const r = triggerRef.current.getBoundingClientRect();
       const left = Math.max(8, Math.min(r.left, window.innerWidth - 320));
-      const top = r.bottom; // fixed positioning (viewport coords)
+      const top = r.bottom;
       setMenuStyle({
         position: "fixed",
         top: `${top}px`,
@@ -105,7 +102,7 @@ const NoteTypeDropdown = ({
   }, [isOpen]);
 
   const handleToggle = (e) => {
-    if (e && e.preventDefault) e.preventDefault(); // stop blur
+    if (e && e.preventDefault) e.preventDefault();
     if (!disabled) setIsOpen((s) => !s);
   };
 
@@ -161,7 +158,7 @@ const NoteTypeDropdown = ({
                 <button
                   key={type.value}
                   className={`dropdown-item ${selected ? "selected" : ""}`}
-                  onMouseDown={(e) => e.preventDefault()} // keep open
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => handleTypeSelect(type)}
                   role="menuitem"
                 >

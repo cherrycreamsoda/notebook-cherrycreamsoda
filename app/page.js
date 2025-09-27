@@ -147,15 +147,13 @@ function PageContent() {
 
   const handleApplyOrUpdateNote = useCallback(
     async (arg1, arg2) => {
-      // If a single argument that looks like a note object is passed, apply it locally
       if (arg2 === undefined && arg1 && typeof arg1 === "object" && arg1._id) {
-        // Update the currently selected note immediately
         setSelectedNote(arg1);
-        // Refresh notes so lists reflect lock state changes
+
         await loadNotes(currentView, searchTerm);
         return arg1;
       }
-      // Otherwise, assume normal (id, updates) signature and forward to updateNote
+
       return updateNote(arg1, arg2);
     },
     [setSelectedNote, loadNotes, currentView, searchTerm, updateNote]
