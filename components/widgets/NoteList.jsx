@@ -296,6 +296,9 @@ const NoteItem = ({
 
   const getPreviewText = () => {
     try {
+      if (note.locked) {
+        return "Note is locked";
+      }
       const preview = getPreview(note.content, note.type);
       return String(preview || "No additional text");
     } catch (error) {
@@ -325,7 +328,13 @@ const NoteItem = ({
       </div>
       <div className="note-content">
         <h4 className="note-title">{String(note.title || "Untitled")}</h4>
-        <p className="note-preview">{getPreviewText()}</p>
+        <p
+          className={`note-preview ${
+            note.locked ? "note-preview-locked" : " "
+          }`}
+        >
+          {getPreviewText()}
+        </p>
         <div className="note-meta">
           <span className="note-date">{formatDate(note.updatedAt)}</span>
         </div>
