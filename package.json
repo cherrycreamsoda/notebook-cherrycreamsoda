@@ -5,10 +5,11 @@
   "author": "Hamza Zain",
   "scripts": {
     "dev": "next dev",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "turbo": "next dev --turbopack"
+    "turbo": "next dev --turbopack",
+    "buildturbo": "next build --turbopack"
   },
   "dependencies": {
     "lucide-react": "^0.542.0",
