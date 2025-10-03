@@ -16,16 +16,14 @@ export async function PUT(req, context) {
 
   try {
     const { passkey } = await req.json();
-
-    if (!passkey) {
+    if (!passkey || typeof passkey !== "string" || passkey.length !== 6) {
       return NextResponse.json(
-        { success: false, error: "Passkey is required" },
+        { success: false, error: "Invalid passkey. Must be 6 digits." },
         { status: 400 }
       );
     }
 
     const note = await Note.findById(id);
-
     if (!note) {
       return NextResponse.json(
         { success: false, error: "Note not found" },
@@ -33,21 +31,14 @@ export async function PUT(req, context) {
       );
     }
 
-    if (!note.locked) {
+    if (note.passkey !== null) {
       return NextResponse.json(
-        { success: false, error: "Note is not locked" },
-        { status: 400 }
+        { success: false, error: "Passkey already set; cannot be changed" },
+        { status: 403 }
       );
     }
 
-    if (note.passkey !== passkey) {
-      return NextResponse.json(
-        { success: false, error: "Incorrect passkey" },
-        { status: 401 }
-      );
-    }
-
-    note.locked = false;
+    note.passkey = passkey;
     await note.save();
 
     return NextResponse.json({ success: true, data: note });

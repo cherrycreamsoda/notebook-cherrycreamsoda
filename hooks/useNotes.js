@@ -7,6 +7,7 @@ import { useNotesCreator } from "./notes/useNotesCreator";
 import { useNotesUpdater } from "./notes/useNotesUpdater";
 import { useNotesDeleter } from "./notes/useNotesDeleter";
 import { useNotesComputed } from "./notes/useNotesComputed";
+import { useNotesLocker } from "./notes/useNotesLocker";
 
 export const useNotes = () => {
   const { loading, error, execute, clearError } = useAsyncAction();
@@ -70,6 +71,15 @@ export const useNotes = () => {
       execute,
     });
 
+  const { setPasskey, lockNote, unlockNote } = useNotesLocker({
+    allNotes,
+    selectedNote,
+    setAllNotes,
+    setSelectedNote,
+    updateNoteInArrays,
+    execute,
+  });
+
   const { counts } = useNotesComputed({ allNotes });
 
   const handleSelectNote = async (note) => {
@@ -99,5 +109,8 @@ export const useNotes = () => {
     togglePin,
     clearAllDeleted,
     cache,
+    setPasskey,
+    lockNote,
+    unlockNote,
   };
 };

@@ -15,27 +15,28 @@ export async function PUT(req, context) {
   }
 
   try {
-    const { passkey } = await req.json();
-
-    if (!passkey || passkey.length !== 6) {
-      return NextResponse.json(
-        { success: false, error: "Invalid passkey. Must be 6 digits." },
-        { status: 400 }
-      );
-    }
-
-    const note = await Note.findByIdAndUpdate(
-      id,
-      { locked: true, passkey: passkey },
-      { new: true }
-    );
-
+    const note = await Note.findById(id);
     if (!note) {
       return NextResponse.json(
         { success: false, error: "Note not found" },
         { status: 404 }
       );
     }
+
+    if (note.passkey === null) {
+      return NextResponse.json(
+        { success: false, error: "Passkey not set for this note" },
+        { status: 400 }
+      );
+    }
+
+    if (note.locked) {
+      // Idempotent: already locked, return current state
+      return NextResponse.json({ success: true, data: note });
+    }
+
+    note.locked = true;
+    await note.save();
 
     return NextResponse.json({ success: true, data: note });
   } catch (err) {

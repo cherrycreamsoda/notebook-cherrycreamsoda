@@ -30,6 +30,9 @@ const MainContent = ({
   isFullscreen,
   onToggleFullscreen,
   headerBackgroundEnabled,
+  onSetPasskey,
+  onLockNote,
+  onUnlockNote,
 }) => {
   const { loading: pinLoading, execute: executePin } = useAsyncAction();
   const { loading: deleteLoading, execute: executeDelete } = useAsyncAction();
@@ -40,6 +43,8 @@ const MainContent = ({
     useState(false);
   const [passcodeSetupMessage, setPasscodeSetupMessage] = useState("");
   const [passcodeSetupError, setPasscodeSetupError] = useState(false);
+  const [passcodeOverlayMode, setPasscodeOverlayMode] = useState("setup");
+
   useEffect(() => {
     if (headerBackgroundEnabled !== undefined) {
       setIsTransitioning(true);
@@ -70,66 +75,63 @@ const MainContent = ({
   const handleToggleLock = async () => {
     if (!selectedNote) return;
 
-    if (selectedNote.passkey === null) {
+    const isLocked = !!selectedNote.locked;
+    const hasPasskey = selectedNote.passkey !== null;
+
+    if (!hasPasskey) {
+      // Need to set passkey first
+      setPasscodeOverlayMode("setup");
       setShowPasscodeSetupOverlay(true);
       setPasscodeSetupMessage("");
       setPasscodeSetupError(false);
-    } else {
-      const newLockedStatus = !selectedNote.locked;
+      return;
+    }
+
+    if (!isLocked) {
+      // Lock immediately
       executeLock(async () => {
-        const endpoint = newLockedStatus
-          ? `/api/notes/${selectedNote._id}/lock`
-          : `/api/notes/${selectedNote._id}/unlock`;
-        const method = "PUT";
-        const body = newLockedStatus
-          ? { passkey: selectedNote.passkey }
-          : { passkey: selectedNote.passkey };
-        const res = await fetch(endpoint, {
-          method,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (data.success) {
-          onUpdateNote(data.data);
-        } else {
-          throw new Error(data.error);
-        }
-      }, `Failed to ${newLockedStatus ? "lock" : "unlock"} note`);
+        const updated = await onLockNote(selectedNote._id);
+        onUpdateNote(updated);
+      }, "Failed to lock note");
+    } else {
+      // Unlock requires passcode
+      setPasscodeOverlayMode("unlock");
+      setShowPasscodeSetupOverlay(true);
+      setPasscodeSetupMessage("");
+      setPasscodeSetupError(false);
     }
   };
 
-  const handlePasskeySetup = async (enteredPasscode) => {
+  const handlePasscodeSetup = async (enteredPasscode) => {
     setPasscodeSetupMessage("");
     setPasscodeSetupError(false);
 
     try {
-      const res = await fetch(`/api/notes/${selectedNote._id}/lock`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ passkey: enteredPasscode }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
+      if (passcodeOverlayMode === "setup") {
+        const updatedAfterSet = await onSetPasskey(
+          selectedNote._id,
+          enteredPasscode
+        );
+        // Optionally lock right after setting passkey to preserve current UX
+        const updated = await onLockNote(updatedAfterSet._id);
         setPasscodeSetupMessage("Your password is set");
         setPasscodeSetupError(false);
         setTimeout(() => {
           setShowPasscodeSetupOverlay(false);
-          onUpdateNote(data.data);
-        }, 3000);
+          onUpdateNote(updated);
+        }, 1500);
       } else {
-        setPasscodeSetupMessage("Try Again");
-        setPasscodeSetupError(true);
+        // unlock flow
+        const updated = await onUnlockNote(selectedNote._id, enteredPasscode);
+        setPasscodeSetupMessage("Note unlocked!");
+        setPasscodeSetupError(false);
+        setTimeout(() => {
+          setShowPasscodeSetupOverlay(false);
+          onUpdateNote(updated);
+        }, 1000);
       }
     } catch (error) {
-      console.error("Passkey setup API error:", error);
-      setPasscodeSetupMessage("Error setting password");
+      setPasscodeSetupMessage("Try Again");
       setPasscodeSetupError(true);
     }
   };
@@ -212,7 +214,7 @@ const MainContent = ({
 
       {showPasscodeSetupOverlay && (
         <PasscodeOverlay
-          onPasscodeEntered={handlePasskeySetup}
+          onPasscodeEntered={handlePasscodeSetup}
           onDismiss={handleDismissPasscodeSetupOverlay}
           message={passcodeSetupMessage}
           isError={passcodeSetupError}

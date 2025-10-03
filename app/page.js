@@ -44,6 +44,9 @@ function PageContent() {
     togglePin,
     clearAllDeleted,
     cache,
+    setPasskey,
+    lockNote,
+    unlockNote,
   } = useNotes();
 
   useEffect(() => {
@@ -159,6 +162,33 @@ function PageContent() {
     [setSelectedNote, loadNotes, currentView, searchTerm, updateNote]
   );
 
+  const handleSetPasskey = useCallback(
+    async (id, pass) => {
+      const updated = await setPasskey(id, pass);
+      await loadNotes(currentView, searchTerm);
+      return updated;
+    },
+    [setPasskey, loadNotes, currentView, searchTerm]
+  );
+
+  const handleLockNote = useCallback(
+    async (id) => {
+      const updated = await lockNote(id);
+      await loadNotes(currentView, searchTerm);
+      return updated;
+    },
+    [lockNote, loadNotes, currentView, searchTerm]
+  );
+
+  const handleUnlockNote = useCallback(
+    async (id, pass) => {
+      const updated = await unlockNote(id, pass);
+      await loadNotes(currentView, searchTerm);
+      return updated;
+    },
+    [unlockNote, loadNotes, currentView, searchTerm]
+  );
+
   if (initialLoading) {
     return (
       <div className={styles.app}>
@@ -260,6 +290,9 @@ function PageContent() {
         onToggleFullscreen={toggleFullscreen}
         isTransitioningFullscreen={isTransitioningFullscreen}
         headerBackgroundEnabled={headerBackgroundEnabled}
+        onSetPasskey={handleSetPasskey}
+        onLockNote={handleLockNote}
+        onUnlockNote={handleUnlockNote}
       />
 
       <FloatingActionButton
