@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useDebounce } from "@hooks/useDebounce";
 import {
   DEFAULT_BUTTON_STATES,
@@ -11,13 +11,19 @@ import {
 } from "@lib/constants/richTextEditorConstants";
 import { extractPlainText } from "@lib/utils/richTextEditorUtils";
 
-const RichTextEditor = ({ selectedNote, onContentChange, updateCounts }) => {
+const RichTextEditor = ({
+  selectedNote,
+  onContentChange,
+  updateCounts,
+  readOnly = false,
+}) => {
   const contentRef = useRef(null);
   const [buttonStates, setButtonStates] = useState(DEFAULT_BUTTON_STATES);
   const [hasSelection, setHasSelection] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
   const [lastNoteId, setLastNoteId] = useState(null);
+  z;
   const typingTimeoutRef = useRef(null);
 
   const { debouncedCallback: debouncedUpdateButtonStates } = useDebounce(() => {
@@ -74,10 +80,12 @@ const RichTextEditor = ({ selectedNote, onContentChange, updateCounts }) => {
         setLastNoteId(noteId);
 
         if (contentRef.current) {
-          const content = selectedNote.content || "";
+          const content =
+            readOnly || selectedNote.locked ? "" : selectedNote.content || "";
           contentRef.current.innerHTML = content;
 
-          const plainText = extractPlainText(content);
+          const plainText =
+            readOnly || selectedNote.locked ? "" : extractPlainText(content);
           updateCounts(plainText);
         }
 
@@ -89,10 +97,17 @@ const RichTextEditor = ({ selectedNote, onContentChange, updateCounts }) => {
       setHasStartedTyping(false);
       setLastNoteId(null);
     }
-  }, [selectedNote, updateButtonStatesFromDOM, updateCounts, lastNoteId]);
+  }, [
+    selectedNote,
+    updateButtonStatesFromDOM,
+    updateCounts,
+    lastNoteId,
+    readOnly,
+  ]);
 
   const handleContentChange = useCallback(() => {
     if (!contentRef.current) return;
+    if (readOnly) return; // do nothing when readOnly/locked
     handleTypingStart();
 
     const htmlContent = contentRef.current.innerHTML;
@@ -100,7 +115,7 @@ const RichTextEditor = ({ selectedNote, onContentChange, updateCounts }) => {
 
     updateCounts(plainText);
     onContentChange(htmlContent);
-  }, [handleTypingStart, updateCounts, onContentChange]);
+  }, [handleTypingStart, updateCounts, onContentChange, readOnly]);
 
   const handleKeyDown = useCallback((e) => {
     if ((e.ctrlKey || e.metaKey) && KEYBOARD_SHORTCUTS[e.key]) {
@@ -223,7 +238,7 @@ const RichTextEditor = ({ selectedNote, onContentChange, updateCounts }) => {
   return (
     <div
       ref={contentRef}
-      contentEditable
+      contentEditable={!readOnly} // disable editing when readOnly
       onInput={handleContentChange}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}

@@ -6,6 +6,8 @@ import { useBaseEditor } from "@hooks/useBaseEditor.js";
 import LockedEditorOverlay from "./LockedEditorOverlay";
 import PasscodeOverlay from "@components/PasscodeOverlay";
 import { useState } from "react";
+import { useNotes } from "@hooks/useNotes";
+
 const BaseEditor = ({
   selectedNote,
   onUpdateNote,
@@ -37,34 +39,26 @@ const BaseEditor = ({
   const [passcodeMessage, setPasscodeMessage] = useState("");
   const [passcodeError, setPasscodeError] = useState(false);
 
+  const { unlockNote } = useNotes();
+
   const handleUnlockAttempt = async (enteredPasscode) => {
     setPasscodeMessage("");
     setPasscodeError(false);
 
     try {
-      const res = await fetch(`/api/notes/${selectedNote._id}/unlock`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ passkey: enteredPasscode }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
+      const updated = await unlockNote(selectedNote._id, enteredPasscode);
+      if (updated && updated._id) {
         setPasscodeMessage("Note unlocked!");
         setPasscodeError(false);
         setTimeout(() => {
           setShowPasscodeOverlay(false);
-          onUpdateNote(data.data);
+          onUpdateNote(updated);
         }, 1000);
       } else {
         setPasscodeMessage("Try Again");
         setPasscodeError(true);
       }
     } catch (error) {
-      console.error("Unlock API error:", error);
       setPasscodeMessage("Error unlocking note");
       setPasscodeError(true);
     }
@@ -117,12 +111,19 @@ const BaseEditor = ({
             className={`editor-container ${!showTitle ? "full-height" : ""}`}
           >
             <div className="content-wrapper">
-              {React.cloneElement(children, {
-                selectedNote,
-                onContentChange: handleContentChange,
-                updateCounts,
-                readOnly: selectedNote.locked,
-              })}
+              {!selectedNote.locked ? (
+                React.cloneElement(children, {
+                  selectedNote,
+                  onContentChange: (data) => {
+                    if (selectedNote.locked) return;
+                    return handleContentChange(data);
+                  },
+                  updateCounts,
+                  readOnly: selectedNote.locked,
+                })
+              ) : (
+                <div className="editor-blank" aria-hidden="true" />
+              )}
             </div>
           </div>
         </div>

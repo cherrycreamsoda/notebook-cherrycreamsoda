@@ -373,7 +373,7 @@ const NoteItem = ({
               className="note-action-btn delete"
               onClick={onDelete}
               title="Delete note"
-              disabled={loadingStates[`delete-${note._id}`] || note.locked}
+              disabled={loadingStates[`delete-${note._id}`]}
             >
               {loadingStates[`delete-${note._id}`] ? (
                 <LoadingSpinner size={12} inline={true} showMessage={false} />
@@ -385,7 +385,7 @@ const NoteItem = ({
               className={`note-action-btn pin ${note.pinned ? "active" : ""}`}
               onClick={onTogglePin}
               title={note.pinned ? "Unpin note" : "Pin note"}
-              disabled={loadingStates[`pin-${note._id}`] || note.locked}
+              disabled={loadingStates[`pin-${note._id}`]}
             >
               {loadingStates[`pin-${note._id}`] ? (
                 <LoadingSpinner size={12} inline={true} showMessage={false} />

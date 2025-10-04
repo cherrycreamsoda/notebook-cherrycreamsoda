@@ -34,6 +34,13 @@ export const useNotesDeleter = ({
         } catch (e) {}
       }
 
+      if (noteToDelete?.locked) {
+        setCreateError("Unlock the note before deleting.");
+        setSelectedNote(noteToDelete);
+        setTimeout(() => setCreateError(null), 3000);
+        return { blocked: true, note: noteToDelete };
+      }
+
       if (noteToDelete?.pinned) {
         setCreateError("Unpin the note before deleting.");
         setSelectedNote(noteToDelete);

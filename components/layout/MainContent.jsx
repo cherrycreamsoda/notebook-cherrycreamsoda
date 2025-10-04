@@ -207,6 +207,9 @@ const MainContent = ({
 
       <div className="main-content-inner">
         <EditorContainer
+          key={`${selectedNote._id}:${selectedNote.locked ? "L" : "U"}:${
+            selectedNote.updatedAt || ""
+          }`}
           selectedNote={selectedNote}
           onUpdateNote={onUpdateNote}
         />

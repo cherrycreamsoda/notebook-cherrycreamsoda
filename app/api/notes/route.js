@@ -47,7 +47,16 @@ export async function GET(req) {
     }
 
     const notes = await Note.find(filter).sort({ updatedAt: -1 });
-    return NextResponse.json({ success: true, data: notes });
+
+    const safeNotes = notes.map((n) => {
+      if (!n.locked) return n;
+      const o = n.toObject();
+      o.content = "Note is Locked";
+      o.rawContent = "";
+      return o;
+    });
+
+    return NextResponse.json({ success: true, data: safeNotes });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

@@ -47,6 +47,19 @@ export const useNotesState = () => {
 
     console.log("Selecting note:", note._id, "title:", note.title);
 
+    if (note.locked) {
+      const safeLocked = {
+        ...note,
+        content: "Note is Locked",
+        rawContent: "",
+      };
+      cache.setCachedNote(note._id, safeLocked);
+      setSelectedNote(safeLocked);
+      setCreateError(null);
+      console.log("Selected locked note as safe/blanked");
+      return safeLocked;
+    }
+
     const cachedNote = cache.getCachedNote(note._id);
 
     if (cachedNote) {

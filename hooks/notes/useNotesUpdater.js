@@ -7,6 +7,9 @@ export const useNotesUpdater = ({
   setLastCreatedNote,
   updateNoteInArrays,
   execute,
+  allNotes,
+  notes,
+  setCreateError,
 }) => {
   const updateNote = async (id, updates) => {
     return execute(async () => {
@@ -23,6 +26,16 @@ export const useNotesUpdater = ({
 
   const togglePin = async (id) => {
     return execute(async () => {
+      const current =
+        (allNotes && allNotes.find((n) => n._id === id)) ||
+        (notes && notes.find((n) => n._id === id));
+
+      if (current?.locked) {
+        setCreateError?.("Unlock the note before pinning.");
+        setTimeout(() => setCreateError?.(null), 3000);
+        return { blocked: true, note: current };
+      }
+
       const updatedNote = await notesAPI.togglePin(id);
       updateNoteInArrays(id, updatedNote);
       return updatedNote;

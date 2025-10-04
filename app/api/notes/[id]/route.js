@@ -24,6 +24,16 @@ export async function GET(req, context) {
         { status: 404 }
       );
     }
+
+    if (note.locked) {
+      const safe = {
+        ...note.toObject(),
+        content: "Note is Locked",
+        rawContent: "",
+      };
+      return NextResponse.json({ success: true, data: safe });
+    }
+
     return NextResponse.json({ success: true, data: note });
   } catch (err) {
     return NextResponse.json(

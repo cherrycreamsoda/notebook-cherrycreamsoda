@@ -54,6 +54,9 @@ export const useNotes = () => {
     setLastCreatedNote,
     updateNoteInArrays,
     execute,
+    allNotes,
+    notes,
+    setCreateError,
   });
 
   const { deleteNote, permanentDelete, restoreNote, clearAllDeleted } =
