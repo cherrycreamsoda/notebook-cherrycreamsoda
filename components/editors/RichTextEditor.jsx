@@ -24,6 +24,11 @@ const RichTextEditor = ({
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
   const [lastNoteId, setLastNoteId] = useState(null);
   const typingTimeoutRef = useRef(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const handleScroll = useCallback(() => {
+    if (!contentRef.current) return;
+    setIsScrolled(contentRef.current.scrollTop > 0);
+  }, []);
 
   const { debouncedCallback: debouncedUpdateButtonStates } = useDebounce(() => {
     if (!contentRef.current || (isTyping && !hasStartedTyping)) return;
@@ -86,6 +91,7 @@ const RichTextEditor = ({
           const plainText =
             readOnly || selectedNote.locked ? "" : extractPlainText(content);
           updateCounts(plainText);
+          setIsScrolled(contentRef.current.scrollTop > 0);
         }
 
         setTimeout(() => {
@@ -243,7 +249,8 @@ const RichTextEditor = ({
       onKeyUp={handleKeyUp}
       onPaste={handlePaste}
       onMouseUp={handleMouseUp}
-      className="note-content-input"
+      onScroll={handleScroll}
+      className={`note-content-input ${isScrolled ? "scrolled" : ""}`}
       data-placeholder={RICH_TEXT_PLACEHOLDER}
       suppressContentEditableWarning={true}
     />

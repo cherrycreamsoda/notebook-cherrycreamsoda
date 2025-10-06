@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import BaseEditor from "./BaseEditor";
+import { RICH_TEXT_PLACEHOLDER } from "@lib/constants/richTextEditorConstants";
 
 const PlainTextEditorContent = ({
   selectedNote,
@@ -88,7 +89,7 @@ const PlainTextEditorContent = ({
       onChange={handleContentChange}
       onKeyDown={handleKeyDown}
       className={`note-content-textarea ${isScrolled ? "scrolled" : ""}`}
-      placeholder="Start writing your note..."
+      placeholder={RICH_TEXT_PLACEHOLDER}
     />
   );
 };
