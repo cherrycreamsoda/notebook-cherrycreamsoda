@@ -31,12 +31,10 @@ export async function PUT(req, context) {
     }
 
     if (note.locked) {
-      const safe = {
-        ...note.toObject(),
-        content: "Note is Locked",
-        rawContent: "",
-      };
-      return NextResponse.json({ success: true, data: safe });
+      return NextResponse.json(
+        { success: false, error: "Note is already locked" },
+        { status: 409 }
+      );
     }
 
     note.locked = true;

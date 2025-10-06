@@ -92,6 +92,26 @@ export async function DELETE(req, context) {
   }
 
   try {
+    const current = await Note.findById(id);
+    if (!current) {
+      return NextResponse.json(
+        { success: false, error: "Note not found" },
+        { status: 404 }
+      );
+    }
+    if (current.locked) {
+      return NextResponse.json(
+        { success: false, error: "Cannot delete a locked note" },
+        { status: 403 }
+      );
+    }
+    if (current.pinned) {
+      return NextResponse.json(
+        { success: false, error: "Cannot delete a pinned note" },
+        { status: 403 }
+      );
+    }
+
     const note = await Note.findByIdAndUpdate(
       id,
       { deleted: true },

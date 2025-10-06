@@ -30,6 +30,13 @@ export async function PUT(req, context) {
       );
     }
 
+    if (!note.deleted) {
+      return NextResponse.json(
+        { success: false, error: "Cannot restore a note that is not deleted" },
+        { status: 400 }
+      );
+    }
+
     const updatedNote = await Note.findByIdAndUpdate(
       id,
       { deleted: false },

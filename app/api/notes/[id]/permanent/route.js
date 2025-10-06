@@ -15,6 +15,35 @@ export async function DELETE(req, context) {
   }
 
   try {
+    const note = await Note.findById(id);
+    if (!note) {
+      return NextResponse.json(
+        { success: false, error: "Note not found" },
+        { status: 404 }
+      );
+    }
+    if (note.locked) {
+      return NextResponse.json(
+        { success: false, error: "Cannot permanently delete a locked note" },
+        { status: 403 }
+      );
+    }
+    if (note.pinned) {
+      return NextResponse.json(
+        { success: false, error: "Cannot permanently delete a pinned note" },
+        { status: 403 }
+      );
+    }
+    if (!note.deleted) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Cannot permanently delete a note that is not deleted",
+        },
+        { status: 400 }
+      );
+    }
+
     const deleted = await Note.findByIdAndDelete(id);
     if (!deleted) {
       return NextResponse.json(
