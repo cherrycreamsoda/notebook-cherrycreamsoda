@@ -49,3 +49,33 @@ export async function PUT(req, context) {
     );
   }
 }
+
+export async function GET(req, context) {
+  await dbConnect();
+  const { id } = await context.params;
+
+  if (!mongoose.isValidObjectId(id)) {
+    return NextResponse.json(
+      { success: false, error: "Invalid note ID" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const note = await Note.findById(id).select("passkey").lean();
+    if (!note) {
+      return NextResponse.json(
+        { success: false, error: "Note not found" },
+        { status: 404 }
+      );
+    }
+
+    const hasPasskey = note.passkey !== null;
+    return NextResponse.json({ success: true, data: { hasPasskey } });
+  } catch (err) {
+    return NextResponse.json(
+      { success: false, error: err.message },
+      { status: 500 }
+    );
+  }
+}

@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import { notesAPI } from "@lib/services/api"; //
 
 import LoadingSpinner from "@components/common/LoadingSpinner";
 import EditorContainer from "@components/editors/EditorContainer";
@@ -44,6 +45,30 @@ const MainContent = ({
   const [passcodeSetupMessage, setPasscodeSetupMessage] = useState("");
   const [passcodeSetupError, setPasscodeSetupError] = useState(false);
   const [passcodeOverlayMode, setPasscodeOverlayMode] = useState("setup");
+  const [selectedHasPasskey, setSelectedHasPasskey] = useState(undefined); //
+
+  useEffect(() => {
+    let active = true;
+    const run = async () => {
+      if (!selectedNote?._id) {
+        setSelectedHasPasskey(undefined);
+        return;
+      }
+      try {
+        const flag = await notesAPI.hasPasskey(selectedNote._id);
+        if (!active) return;
+        setSelectedHasPasskey(flag);
+      } catch {
+        if (!active) return;
+        // fallback handled below via legacy field
+        setSelectedHasPasskey(undefined);
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
+  }, [selectedNote?._id]);
 
   useEffect(() => {
     if (headerBackgroundEnabled !== undefined) {
@@ -76,7 +101,7 @@ const MainContent = ({
     if (!selectedNote) return;
 
     const isLocked = !!selectedNote.locked;
-    const hasPasskey = selectedNote.passkey !== null;
+    const hasPasskey = selectedHasPasskey === true; // only API bool
 
     if (!hasPasskey) {
       // Need to set passkey first
@@ -199,6 +224,7 @@ const MainContent = ({
         deleteLoading={deleteLoading}
         onToggleLock={handleToggleLock}
         lockLoading={lockLoading}
+        hasPasskey={selectedHasPasskey === true} // pass explicit API boolean
       />
 
       <div className="main-content-inner">
@@ -237,6 +263,7 @@ const MainHeader = React.forwardRef(
       deleteLoading,
       onToggleLock,
       lockLoading,
+      hasPasskey, // new prop
     },
     ref
   ) => (
@@ -264,7 +291,7 @@ const MainHeader = React.forwardRef(
 
       {selectedNote && (
         <div className="note-header-actions">
-          {selectedNote.passkey === null ? (
+          {hasPasskey !== true ? (
             <button
               className="note-header-btn lock-btn"
               onClick={onToggleLock}

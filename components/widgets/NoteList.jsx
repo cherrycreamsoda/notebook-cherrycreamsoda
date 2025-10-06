@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import LoadingSpinner from "@components/common/LoadingSpinner";
 import ConfirmationDialog from "@components/common/ConfirmationDialog";
 import { formatDate, getPreview } from "@lib/utils/dateUtils";
+import { notesAPI } from "@lib/services/api";
 
 import {
   ArrowLeft,
@@ -47,6 +48,7 @@ const NoteList = ({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [loadingStates, setLoadingStates] = useState({});
   const [confirmDialog, setConfirmDialog] = useState(null);
+  const [hasPasskeyById, setHasPasskeyById] = useState({}); // cache hasPasskey per note
 
   useEffect(() => {
     if (selectedNote) {
@@ -132,6 +134,34 @@ const NoteList = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [confirmDialog]);
+
+  useEffect(() => {
+    let active = true;
+    const fetchFlags = async () => {
+      const missing = notes.filter((n) => hasPasskeyById[n._id] === undefined);
+      if (missing.length === 0) return;
+      const entries = await Promise.all(
+        missing.map(async (n) => {
+          try {
+            const flag = await notesAPI.hasPasskey(n._id);
+            return [n._id, flag];
+          } catch {
+            return [n._id, false];
+          }
+        })
+      );
+      if (!active) return;
+      setHasPasskeyById((prev) => {
+        const next = { ...prev };
+        for (const [id, flag] of entries) next[id] = flag;
+        return next;
+      });
+    };
+    fetchFlags();
+    return () => {
+      active = false;
+    };
+  }, [notes, hasPasskeyById]);
 
   const handleAction = async (actionFn, actionId) => {
     try {
@@ -237,6 +267,7 @@ const NoteList = ({
               }}
               onPermanentDelete={handlePermanentDelete}
               loadingStates={loadingStates}
+              hasPasskeyById={hasPasskeyById}
             />
           ))
         )}
@@ -291,8 +322,11 @@ const NoteItem = ({
   onTogglePin,
   onPermanentDelete,
   loadingStates,
+  hasPasskeyById,
 }) => {
   const TypeIcon = NOTE_TYPE_ICONS[note.type] || FileText;
+
+  const hasPasskey = hasPasskeyById?.[note._id] === true;
 
   const getPreviewText = () => {
     try {
@@ -315,15 +349,18 @@ const NoteItem = ({
       style={{ "--item-index": index }}
       onClick={onSelect}
     >
-      <div className="note-type-icon">
-        {note.passkey !== null ? (
-          note.locked ? (
-            <Lock size={14} className="note-lock-icon locked" />
-          ) : (
-            <Unlock size={14} className="note-lock-icon unlocked" />
-          )
-        ) : (
+      <div className="note-type-stack">
+        <div className="note-type-icon">
           <TypeIcon size={14} />
+        </div>
+        {hasPasskey && (
+          <div className="note-type-lock-under">
+            {note.locked ? (
+              <Lock size={12} className="note-lock-icon locked" />
+            ) : (
+              <Unlock size={12} className="note-lock-icon unlocked" />
+            )}
+          </div>
         )}
       </div>
       <div className="note-content">
