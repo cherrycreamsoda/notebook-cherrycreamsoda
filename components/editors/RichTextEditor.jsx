@@ -23,7 +23,6 @@ const RichTextEditor = ({
   const [isTyping, setIsTyping] = useState(false);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
   const [lastNoteId, setLastNoteId] = useState(null);
-  z;
   const typingTimeoutRef = useRef(null);
 
   const { debouncedCallback: debouncedUpdateButtonStates } = useDebounce(() => {

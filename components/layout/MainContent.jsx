@@ -123,12 +123,8 @@ const MainContent = ({
       } else {
         // unlock flow
         const updated = await onUnlockNote(selectedNote._id, enteredPasscode);
-        setPasscodeSetupMessage("Note unlocked!");
-        setPasscodeSetupError(false);
-        setTimeout(() => {
-          setShowPasscodeSetupOverlay(false);
-          onUpdateNote(updated);
-        }, 1000);
+        onUpdateNote(updated); // flip locked=false now so LockedEditorOverlay unmounts
+        setShowPasscodeSetupOverlay(false); // close passcode overlay immediately
       }
     } catch (error) {
       setPasscodeSetupMessage("Try Again");
@@ -207,9 +203,7 @@ const MainContent = ({
 
       <div className="main-content-inner">
         <EditorContainer
-          key={`${selectedNote._id}:${selectedNote.locked ? "L" : "U"}:${
-            selectedNote.updatedAt || ""
-          }`}
+          key={`${selectedNote._id}:${selectedNote.locked ? "L" : "U"}`}
           selectedNote={selectedNote}
           onUpdateNote={onUpdateNote}
         />
@@ -331,7 +325,7 @@ const MainHeader = React.forwardRef(
           </button>
 
           <button
-            className="note-header-btn"
+            className="note-header-btn close-btn"
             onClick={handleCloseNote}
             title="Close Note"
           >

@@ -512,10 +512,6 @@
   color: #dc2626;
 }
 
-.note-item.selected .note-preview {
-  color: rgba(255, 255, 255, 0.8);
-}
-
 .note-meta {
   display: flex;
   align-items: center;

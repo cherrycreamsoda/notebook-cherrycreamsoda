@@ -21,7 +21,23 @@ export const useNotesState = () => {
     cache.updateCachedNote(noteId, updatedNote);
 
     if (selectedNote?._id === noteId && selectedNote?._id === updatedNote._id) {
-      setSelectedNote(updatedNote);
+      const structuralFields = [
+        "title",
+        "type",
+        "locked",
+        "pinned",
+        "passkey",
+        "deleted",
+      ];
+      const structuralChanged = structuralFields.some(
+        (f) => selectedNote[f] !== updatedNote[f]
+      );
+
+      if (structuralChanged) {
+        setSelectedNote(updatedNote);
+      }
+      // If only content changed, keep the current selectedNote reference stable:
+      // this preserves caret position and stops the editor from re-initializing mid-typing.
     }
   };
 

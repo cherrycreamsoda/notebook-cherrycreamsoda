@@ -48,12 +48,10 @@ const BaseEditor = ({
     try {
       const updated = await unlockNote(selectedNote._id, enteredPasscode);
       if (updated && updated._id) {
-        setPasscodeMessage("Note unlocked!");
+        onUpdateNote(updated);
+        setShowPasscodeOverlay(false);
+        setPasscodeMessage("");
         setPasscodeError(false);
-        setTimeout(() => {
-          setShowPasscodeOverlay(false);
-          onUpdateNote(updated);
-        }, 1000);
       } else {
         setPasscodeMessage("Try Again");
         setPasscodeError(true);

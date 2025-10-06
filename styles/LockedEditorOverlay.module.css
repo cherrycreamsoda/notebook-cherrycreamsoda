@@ -8,7 +8,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 50; /* Above editor content, below passcode overlay */
   cursor: pointer;
   color: #da3036 !important;
   background-color: #3d1719 !important;
@@ -23,8 +22,8 @@
 }
 
 .hexagon {
-  width: 600px;
-  height: 600px;
+  width: min(70vw, calc(80vh - 80px));
+  height: min(70vw, calc(80vh - 80px));
   background-color: #dc2626; /* blood-red */
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   display: flex;
