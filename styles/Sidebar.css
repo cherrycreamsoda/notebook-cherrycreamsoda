@@ -467,15 +467,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  gap: 5px;
   width: 20px;
   margin-right: 8px;
-  margin-top: 2px;
   flex-shrink: 0;
 }
 
 /* keep the type icon sized; remove right margin when inside stack */
 .note-type-stack .note-type-icon {
-  margin-right: 0;
+  color: #9ca3af;
 }
 
 /* ensure lock/unlock sits below the type icon with clean spacing */
@@ -496,7 +496,7 @@
   font-size: 14px;
   font-weight: 600;
   color: #ffffff;
-  margin: 0 0 4px 0;
+  margin: 2px 0 4px 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -509,7 +509,7 @@
 .note-preview {
   font-size: 13px;
   color: #9ca3af;
-  margin: 0 0 6px 0;
+  margin: 2px 0 4px 0;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
