@@ -418,13 +418,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 10px 16px 5px 32px;
+  padding: 12px 32px 0px 32px;
   flex-shrink: 0;
-}
-
-.note-editor.datasheet-mode .note-header {
-  padding-left: 32px;
-  padding-right: 32px;
 }
 
 .note-title-input {
@@ -453,7 +448,7 @@
 }
 
 .note-title-input:focus::placeholder {
-  color: #4b5563;
+  color: #575757;
 }
 
 .editor-container {
@@ -483,7 +478,7 @@
   line-height: 1.8;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     sans-serif;
-  padding: 0 32px 160px 32px;
+  padding: 8px 32px 160px 32px;
   transition: all 0.3s ease;
   overflow-y: auto;
   overflow-x: hidden;
@@ -499,13 +494,12 @@
   border: none;
   outline: none !important;
   box-shadow: none !important;
-  background: none;
   font-size: 18px;
   color: #f1f5f9;
   line-height: 1.8;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     sans-serif;
-  padding: 0px 32px 30px 32px;
+  padding: 0px 36px 30px 36px; /* Added top padding */
   transition: all 0.3s ease;
   resize: none;
   word-wrap: break-word;
@@ -513,6 +507,10 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #404040 transparent;
+}
+
+.note-content-textarea.scrolled {
+  box-shadow: inset 0 8px 10px -6px rgba(0, 0, 0, 0.325) !important;
 }
 
 .note-content-input::-webkit-scrollbar,
@@ -549,23 +547,23 @@
 .note-content-textarea:focus {
   color: #ffffff;
   outline: none !important;
-  box-shadow: none !important;
+  /* box-shadow: none !important; */
 }
 
 .note-content-input:empty::before {
   content: attr(data-placeholder);
-  color: #64748b;
+  color: #404040;
   pointer-events: none;
   position: absolute;
 }
 
 .note-content-textarea::placeholder {
-  color: #64748b;
+  color: #404040;
 }
 
 .note-content-input:focus:empty::before,
 .note-content-textarea:focus::placeholder {
-  color: #94a3b8;
+  color: #575757;
 }
 
 .note-content-input strong {
@@ -644,22 +642,24 @@
 }
 
 @media (max-width: 768px) {
-  .main-header::before {
-    background-size: 250% 250%;
+  .note-header {
+    padding: 8px 32px 5px 32px;
   }
 
-  .note-header {
-    padding: 16px 24px 22px 24px;
+  .note-content-textarea {
+    padding: 0px 32px 30px 32px;
+  }
+  .note-content-input {
+    padding: 0px 32px 160px 32px;
+  }
+
+  .main-header::before {
+    background-size: 250% 250%;
   }
 
   .main-content {
     margin: 44px 8px 8px 8px;
     border-radius: 8px;
-  }
-
-  .note-editor.datasheet-mode .note-header {
-    padding-left: 24px;
-    padding-right: 24px;
   }
 
   .formatting-toolbar {
@@ -681,12 +681,11 @@
   }
 
   .note-title-input {
-    font-size: 28px;
+    font-size: 40px;
   }
-
   .note-content-input,
   .note-content-textarea {
-    font-size: 17px;
+    font-size: 16px;
   }
 
   .empty-main {
@@ -703,17 +702,11 @@
     background-size: 200% 200%;
   }
 
-  .note-header {
-    padding: 16px 20px 20px 20px;
-  }
-
   .note-content-textarea {
-    padding: 0px 20px 30px 20px;
+    padding: 0px 20px 90px 20px;
   }
-
-  .note-editor.datasheet-mode .note-header {
-    padding-left: 20px;
-    padding-right: 20px;
+  .note-header {
+    padding: 5px 20px 0px 20px;
   }
 
   .formatting-toolbar {
@@ -727,7 +720,7 @@
   }
 
   .note-title-input {
-    font-size: 24px;
+    font-size: 32px;
   }
 
   .note-content-input,
@@ -750,7 +743,7 @@
 
 .note-editor *:focus {
   outline: none !important;
-  box-shadow: none !important;
+  /* box-shadow: none !important; */
 }
 
 .note-editor input:focus,
@@ -758,6 +751,6 @@
 .note-editor textarea:focus,
 .note-editor [contenteditable]:focus {
   outline: none !important;
-  box-shadow: none !important;
+  /* box-shadow: none !important; */
   border: none !important;
 }

@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useRef, useState, useCallback } from "react";
-
 import BaseEditor from "./BaseEditor";
 
 const PlainTextEditorContent = ({
@@ -11,6 +10,7 @@ const PlainTextEditorContent = ({
   const plainTextRef = useRef(null);
   const [lastNoteId, setLastNoteId] = useState(null);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Escape") {
@@ -26,9 +26,7 @@ const PlainTextEditorContent = ({
 
   useEffect(() => {
     window.editorFocusHandler = () => {
-      if (plainTextRef.current) {
-        plainTextRef.current.focus();
-      }
+      plainTextRef.current?.focus();
     };
     return () => {
       window.editorFocusHandler = null;
@@ -53,7 +51,29 @@ const PlainTextEditorContent = ({
     }
   }, [selectedNote, updateCounts, lastNoteId]);
 
-  const handleContentChange = (e) => {
+  useEffect(() => {
+    const textarea = plainTextRef.current;
+
+    const handleScroll = () => {
+      if (textarea.scrollTop > 0) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    if (textarea) {
+      textarea.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (textarea) {
+        textarea.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
+  const handleContentChange = () => {
     if (!plainTextRef.current) return;
     if (!hasStartedTyping) setHasStartedTyping(true);
 
@@ -67,7 +87,7 @@ const PlainTextEditorContent = ({
       ref={plainTextRef}
       onChange={handleContentChange}
       onKeyDown={handleKeyDown}
-      className="note-content-textarea"
+      className={`note-content-textarea ${isScrolled ? "scrolled" : ""}`}
       placeholder="Start writing your note..."
     />
   );
@@ -82,7 +102,7 @@ const PlainTextEditor = (props) => {
       showStatusBar={true}
       editorClassName=""
     >
-      <PlainTextEditorContent />
+      <PlainTextEditorContent {...props} />
     </BaseEditor>
   );
 };
