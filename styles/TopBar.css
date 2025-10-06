@@ -58,7 +58,7 @@
     #d97706 100% /* Dark amber */
   );
   background-size: 300% 300%;
-  animation: appleNotesToggle 6s ease-in-out infinite;
+  /* animation: appleNotesToggle 6s ease-in-out infinite; */ /* removed */
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
 }
 

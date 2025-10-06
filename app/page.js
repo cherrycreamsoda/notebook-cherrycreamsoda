@@ -26,6 +26,9 @@ function PageContent() {
   const topBarFullscreenClass = isFullscreen
     ? fullscreenStyles.fullscreenTopBar
     : "";
+  const [isSmallScreen, setIsSmallScreen] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false
+  );
 
   const {
     notes,
@@ -82,6 +85,14 @@ function PageContent() {
       setSidebarCollapsed(true);
     }
   }, [isFullscreen]);
+
+  useEffect(() => {
+    const onResize = () => {
+      setIsSmallScreen(window.innerWidth <= 768);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const handleCreateNote = useCallback(
     async (noteData = {}) => {
@@ -271,10 +282,14 @@ function PageContent() {
         onToggleCollapse={handleSidebarToggle}
         isFullscreen={isFullscreen}
         expandedFullscreenClass={
-          isFullscreen ? fullscreenStyles.fullscreenSidebarExpanded : ""
+          isFullscreen && isSmallScreen
+            ? fullscreenStyles.fullscreenSidebarExpanded
+            : ""
         }
         collapsedFullscreenClass={
-          isFullscreen ? fullscreenStyles.fullscreenSidebarCollapsed : ""
+          isFullscreen && isSmallScreen
+            ? fullscreenStyles.fullscreenSidebarCollapsed
+            : ""
         }
       />
 

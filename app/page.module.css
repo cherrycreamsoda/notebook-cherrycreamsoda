@@ -89,7 +89,7 @@
     #dddc9f
   );
   background-size: 300% 300%;
-  animation: gradientMove 20s infinite;
+  /* animation: gradientMove 20s infinite; */ /* removed */
   box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
 }
 
@@ -191,6 +191,16 @@
   top: 44px;
   bottom: 0;
   left: 0;
+}
+
+@media (max-width: 768px) {
+  .app.fullscreen-mode .sidebar-expanded {
+    width: 100% !important;
+    position: absolute;
+  }
+  .app.fullscreen-mode .sidebar-collapsed {
+    transform: translateX(-100%);
+  }
 }
 
 .coming-soon-tooltip {

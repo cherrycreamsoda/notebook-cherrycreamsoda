@@ -81,7 +81,11 @@ const Sidebar = ({
     return (
       <div
         className={`sidebar sidebar-collapsed ${
-          isFullscreen ? "fullscreen-hidden" : ""
+          typeof window !== "undefined" &&
+          window.innerWidth <= 768 &&
+          isFullscreen
+            ? "fullscreen-hidden"
+            : ""
         }`.trim()}
       >
         <div className="sidebar-toggle-collapsed">
@@ -101,7 +105,11 @@ const Sidebar = ({
     <>
       <div
         className={`sidebar sidebar-expanded ${
-          isFullscreen ? "fullscreen-overlay" : ""
+          typeof window !== "undefined" &&
+          window.innerWidth <= 768 &&
+          isFullscreen
+            ? "fullscreen-overlay"
+            : ""
         }`.trim()}
         ref={sidebarRef}
         tabIndex={0}
@@ -118,7 +126,7 @@ const Sidebar = ({
               <Plus size={16} />
             </button>
 
-            {(window.innerWidth <= 768 || isFullscreen) && (
+            {typeof window !== "undefined" && window.innerWidth <= 768 && (
               <button
                 className="header-action-btn sidebar-close-btn"
                 onClick={onToggleCollapse}
