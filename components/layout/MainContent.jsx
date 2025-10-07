@@ -146,10 +146,22 @@ const MainContent = ({
           onUpdateNote(updated);
         }, 1500);
       } else {
-        // unlock flow
         const updated = await onUnlockNote(selectedNote._id, enteredPasscode);
         onUpdateNote(updated); // flip locked=false now so LockedEditorOverlay unmounts
         setShowPasscodeSetupOverlay(false); // close passcode overlay immediately
+
+        // Fetch a fresh copy from server to ensure the content area shows the unlocked note without any stale overlays/data
+        try {
+          const fresh = await notesAPI.fetchNoteById(selectedNote._id);
+          if (fresh && fresh._id) {
+            // Update the visible note immediately; EditorContainer re-mounts due to key depending on locked state
+            onUpdateNote(fresh);
+            // also move selection explicitly to the fresh note if needed
+            setSelectedNote?.(fresh);
+          }
+        } catch (e) {
+          // non-fatal: if fetch fails, the optimistic updated value already removed the overlay
+        }
       }
     } catch (error) {
       setPasscodeSetupMessage("Try Again");

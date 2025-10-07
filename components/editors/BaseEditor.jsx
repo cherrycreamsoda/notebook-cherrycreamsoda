@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import EditorToolbar from "../widgets/EditorToolbar";
 import ConfirmationDialog from "@components/common/ConfirmationDialog";
 import { useBaseEditor } from "@hooks/useBaseEditor.js";
@@ -40,6 +40,14 @@ const BaseEditor = ({
   const [passcodeError, setPasscodeError] = useState(false);
 
   const { unlockNote } = useNotes();
+
+  useEffect(() => {
+    if (!selectedNote?.locked) {
+      setShowPasscodeOverlay(false);
+      setPasscodeMessage("");
+      setPasscodeError(false);
+    }
+  }, [selectedNote?.locked]);
 
   const handleUnlockAttempt = async (enteredPasscode) => {
     setPasscodeMessage("");
