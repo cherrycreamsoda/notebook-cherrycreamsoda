@@ -49,6 +49,7 @@ const NoteList = ({
   const [loadingStates, setLoadingStates] = useState({});
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [hasPasskeyById, setHasPasskeyById] = useState({}); // cache hasPasskey per note
+  const [prevLockedById, setPrevLockedById] = useState({}); // Track previous locked state to trigger hasPasskey revalidation on lock/unlock
 
   useEffect(() => {
     if (selectedNote) {
@@ -138,7 +139,10 @@ const NoteList = ({
   useEffect(() => {
     let active = true;
     const fetchFlags = async () => {
-      const missing = notes.filter((n) => hasPasskeyById[n._id] === undefined);
+      const missing = notes.filter(
+        (n) =>
+          hasPasskeyById[n._id] === undefined || hasPasskeyById[n._id] === false
+      );
       if (missing.length === 0) return;
       const entries = await Promise.all(
         missing.map(async (n) => {
@@ -158,6 +162,54 @@ const NoteList = ({
       });
     };
     fetchFlags();
+    return () => {
+      active = false;
+    };
+  }, [notes, hasPasskeyById]);
+
+  useEffect(() => {
+    let active = true;
+    const changedIds = notes
+      .filter(
+        (n) =>
+          prevLockedById[n._id] !== undefined &&
+          prevLockedById[n._id] !== n.locked
+      )
+      .map((n) => n._id);
+    if (changedIds.length === 0) {
+      // still update snapshot of locked states
+      setPrevLockedById(
+        Object.fromEntries(notes.map((n) => [n._id, !!n.locked]))
+      );
+      return;
+    }
+    const run = async () => {
+      try {
+        const entries = await Promise.all(
+          changedIds.map(async (id) => {
+            try {
+              const flag = await notesAPI.hasPasskey(id);
+              return [id, flag];
+            } catch {
+              return [id, hasPasskeyById[id] ?? false];
+            }
+          })
+        );
+        if (!active) return;
+        setHasPasskeyById((prev) => {
+          const next = { ...prev };
+          for (const [id, flag] of entries) next[id] = flag;
+          return next;
+        });
+      } finally {
+        if (active) {
+          setPrevLockedById(
+            Object.fromEntries(notes.map((n) => [n._id, !!n.locked]))
+          );
+        }
+      }
+    };
+    run();
     return () => {
       active = false;
     };

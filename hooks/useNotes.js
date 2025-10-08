@@ -57,6 +57,7 @@ export const useNotes = () => {
     allNotes,
     notes,
     setCreateError,
+    selectedNote, // pass selectedNote so updater can use the freshest lock state
   });
 
   const { deleteNote, permanentDelete, restoreNote, clearAllDeleted } =

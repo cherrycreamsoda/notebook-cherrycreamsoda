@@ -10,6 +10,7 @@ export const useNotesUpdater = ({
   allNotes,
   notes,
   setCreateError,
+  selectedNote,
 }) => {
   const updateNote = async (id, updates) => {
     return execute(async () => {
@@ -26,11 +27,16 @@ export const useNotesUpdater = ({
 
   const togglePin = async (id) => {
     return execute(async () => {
-      const current =
+      const currentSelected = selectedNote?._id === id ? selectedNote : null;
+      const currentArray =
         (allNotes && allNotes.find((n) => n._id === id)) ||
         (notes && notes.find((n) => n._id === id));
+      const current = currentSelected || currentArray;
 
-      if (current?.locked) {
+      const effectiveLocked =
+        currentSelected != null ? !!currentSelected.locked : !!current?.locked;
+
+      if (effectiveLocked) {
         setCreateError?.("Unlock the note before pinning.");
         setTimeout(() => setCreateError?.(null), 3000);
         return { blocked: true, note: current };
