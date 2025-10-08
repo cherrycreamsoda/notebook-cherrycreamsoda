@@ -9,6 +9,7 @@ import fullscreenStyles from "../styles/Fullscreen.module.css";
 import LoadingSpinner from "@components/common/LoadingSpinner";
 import ErrorMessage from "@components/common/ErrorMessage";
 import FloatingActionButton from "@components/widgets/FloatingActionButton";
+import HazardOverlay from "@components/common/HazardOverlay";
 
 import { useNotes } from "@hooks/useNotes";
 import { checkBackendHealth } from "@lib/services/api";
@@ -214,6 +215,7 @@ function PageContent() {
     return (
       <div className={styles.app}>
         <div className={styles["app-loading"]}>
+          <HazardOverlay />
           <ErrorMessage
             message={error || createError || "Database connection failed"}
             onDismiss={clearError}
