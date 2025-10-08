@@ -49,10 +49,13 @@ export async function GET(req) {
     const notes = await Note.find(filter).sort({ updatedAt: -1 });
 
     const safeNotes = notes.map((n) => {
-      if (!n.locked) return n;
-      const o = n.toObject();
-      o.content = "Note is Locked";
-      o.rawContent = "";
+      const o = typeof n.toObject === "function" ? n.toObject() : { ...n };
+      const hasPasskey = n.passkey !== null;
+      if (n.locked) {
+        o.content = "Note is Locked";
+        o.rawContent = "";
+      }
+      o.hasPasskey = hasPasskey;
       return o;
     });
 

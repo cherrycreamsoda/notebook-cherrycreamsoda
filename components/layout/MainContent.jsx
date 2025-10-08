@@ -55,9 +55,15 @@ const MainContent = ({
         return;
       }
       try {
-        const flag = await notesAPI.hasPasskey(selectedNote._id);
-        if (!active) return;
-        setSelectedHasPasskey(flag);
+        // If the note list already supplied hasPasskey from the server, use it and skip an extra request
+        if (selectedNote.hasPasskey !== undefined) {
+          if (!active) return;
+          setSelectedHasPasskey(!!selectedNote.hasPasskey);
+        } else {
+          const flag = await notesAPI.hasPasskey(selectedNote._id);
+          if (!active) return;
+          setSelectedHasPasskey(flag);
+        }
       } catch {
         if (!active) return;
         // fallback handled below via legacy field
@@ -68,7 +74,7 @@ const MainContent = ({
     return () => {
       active = false;
     };
-  }, [selectedNote?._id]);
+  }, [selectedNote?._id, selectedNote?.hasPasskey]);
 
   useEffect(() => {
     if (headerBackgroundEnabled !== undefined) {

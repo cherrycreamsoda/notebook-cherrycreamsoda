@@ -139,11 +139,10 @@ const NoteList = ({
   useEffect(() => {
     let active = true;
     const fetchFlags = async () => {
-      const missing = notes.filter(
-        (n) =>
-          hasPasskeyById[n._id] === undefined || hasPasskeyById[n._id] === false
-      );
+      // Only fetch for notes we haven't checked yet (undefined), not for those confirmed false
+      const missing = notes.filter((n) => hasPasskeyById[n._id] === undefined);
       if (missing.length === 0) return;
+
       const entries = await Promise.all(
         missing.map(async (n) => {
           try {
@@ -154,18 +153,23 @@ const NoteList = ({
           }
         })
       );
+
       if (!active) return;
       setHasPasskeyById((prev) => {
         const next = { ...prev };
-        for (const [id, flag] of entries) next[id] = flag;
+        for (const [id, flag] of entries) {
+          next[id] = flag;
+        }
         return next;
       });
     };
+
     fetchFlags();
     return () => {
       active = false;
     };
-  }, [notes, hasPasskeyById]);
+    // ✅ removed hasPasskeyById to prevent infinite loops
+  }, [notes]);
 
   useEffect(() => {
     let active = true;
