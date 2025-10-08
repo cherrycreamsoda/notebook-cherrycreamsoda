@@ -77,8 +77,18 @@ export const useNotesState = () => {
     }
 
     const cachedNote = cache.getCachedNote(note._id);
-
     if (cachedNote) {
+      // If cache is stale (locked) but the provided note is unlocked, override cache and use provided note
+      if (cachedNote.locked && note.locked === false) {
+        cache.setCachedNote(note._id, note);
+        setSelectedNote(note);
+        setCreateError(null);
+        console.log(
+          "Overriding stale locked cache with unlocked provided note"
+        );
+        return note;
+      }
+
       setSelectedNote(cachedNote);
       setCreateError(null);
       console.log("Using cached note for selection");
