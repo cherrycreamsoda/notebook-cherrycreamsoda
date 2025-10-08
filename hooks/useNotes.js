@@ -102,6 +102,7 @@ export const useNotes = () => {
       clearError();
       setCreateError(null);
     },
+    setCreateError, // expose setCreateError so pages/components can raise UI errors (e.g., DB connection failures)
     loadNotes,
     fetchNoteById,
     createNote,

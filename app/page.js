@@ -39,6 +39,7 @@ function PageContent() {
     error,
     createError,
     clearError,
+    setCreateError,
     loadNotes,
     createNote,
     updateNote,
@@ -60,20 +61,22 @@ function PageContent() {
         setBackendConnected(isConnected);
 
         if (!isConnected) {
-          createError(
+          setCreateError(
             "Database connection failed. Please check your server connection and try again."
           );
         }
       } catch (error) {
         console.error("Backend health check failed:", error);
-        createError("Unable to connect to the database. Server may be down.");
+        setCreateError(
+          "Unable to connect to the database. Server may be down."
+        );
         setBackendConnected(false);
       } finally {
         setInitialLoading(false);
       }
     };
     checkConnection();
-  }, [createError]);
+  }, [setCreateError]);
 
   useEffect(() => {
     if (backendConnected) {
@@ -226,12 +229,12 @@ function PageContent() {
                   const isConnected = await checkBackendHealth();
                   setBackendConnected(isConnected);
                   if (!isConnected) {
-                    createError(
+                    setCreateError(
                       "Database connection failed. Please check your server connection and try again."
                     );
                   }
                 } catch (error) {
-                  createError(
+                  setCreateError(
                     "Unable to connect to the database. Server may be down."
                   );
                   setBackendConnected(false);
