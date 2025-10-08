@@ -489,7 +489,7 @@
 }
 
 .note-content-input.scrolled {
-  box-shadow: inset 0 8px 10px -6px rgba(0, 0, 0, 0.325) !important;
+  box-shadow: inset 0 8px 20px -6px rgba(0, 0, 0, 0.451) !important;
 }
 
 .note-content-input::-webkit-scrollbar {
@@ -520,7 +520,6 @@
 .note-content-input:focus {
   color: #ffffff;
   outline: none !important;
-  /* box-shadow: none !important; */
 }
 
 .note-content-input:empty::before {
@@ -763,7 +762,6 @@
 
 .note-editor *:focus {
   outline: none !important;
-  /* box-shadow: none !important; */
 }
 
 .note-editor input:focus,
@@ -771,6 +769,5 @@
 .note-editor textarea:focus,
 .note-editor [contenteditable]:focus {
   outline: none !important;
-  /* box-shadow: none !important; */
   border: none !important;
 }
