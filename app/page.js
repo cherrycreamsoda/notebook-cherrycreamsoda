@@ -6,10 +6,11 @@ import TopBar from "@components/layout/TopBar";
 import Sidebar from "@components/layout/Sidebar";
 import MainContent from "@components/layout/MainContent";
 import fullscreenStyles from "../styles/Fullscreen.module.css";
-import LoadingSpinner from "@components/common/LoadingSpinner";
 import ErrorMessage from "@components/common/ErrorMessage";
 import FloatingActionButton from "@components/widgets/FloatingActionButton";
 import HazardOverlay from "@components/common/HazardOverlay";
+import LiquidLoadingOverlay from "@components/common/LiquidLoadingOverlay";
+import useLoadingProgress from "@hooks/useLoadingProgress";
 
 import { useNotes } from "@hooks/useNotes";
 import { checkBackendHealth } from "@lib/services/api";
@@ -24,12 +25,16 @@ function PageContent() {
   const [isTransitioningFullscreen, setIsTransitioningFullscreen] =
     useState(false);
   const [headerBackgroundEnabled, setHeaderBackgroundEnabled] = useState(false);
+  const [appContentReady, setAppContentReady] = useState(false);
+
   const topBarFullscreenClass = isFullscreen
     ? fullscreenStyles.fullscreenTopBar
     : "";
   const [isSmallScreen, setIsSmallScreen] = useState(
     typeof window !== "undefined" ? window.innerWidth <= 768 : false
   );
+
+  const { progress } = useLoadingProgress(initialLoading);
 
   const {
     notes,
@@ -72,6 +77,7 @@ function PageContent() {
         );
         setBackendConnected(false);
       } finally {
+        setAppContentReady(true);
         setInitialLoading(false);
       }
     };
@@ -204,19 +210,9 @@ function PageContent() {
     [unlockNote, loadNotes, currentView, searchTerm]
   );
 
-  if (initialLoading) {
-    return (
-      <div className={styles.app}>
-        <div className={styles["app-loading"]}>
-          <LoadingSpinner liquidAnimation={true} />
-        </div>
-      </div>
-    );
-  }
-
-  if (!backendConnected && !initialLoading) {
-    return (
-      <div className={styles.app}>
+  const renderAppContent = () => {
+    if (!backendConnected && appContentReady) {
+      return (
         <div className={styles["app-loading"]}>
           <HazardOverlay />
           <ErrorMessage
@@ -224,6 +220,7 @@ function PageContent() {
             onDismiss={clearError}
             onRetry={() => {
               setInitialLoading(true);
+              setAppContentReady(false);
               const checkConnection = async () => {
                 try {
                   const isConnected = await checkBackendHealth();
@@ -239,6 +236,7 @@ function PageContent() {
                   );
                   setBackendConnected(false);
                 } finally {
+                  setAppContentReady(true);
                   setInitialLoading(false);
                 }
               };
@@ -246,80 +244,96 @@ function PageContent() {
             }}
           />
         </div>
-      </div>
-    );
-  }
+      );
+    }
+
+    if (backendConnected && appContentReady) {
+      return (
+        <>
+          <TopBar
+            headerBackgroundEnabled={headerBackgroundEnabled}
+            onToggleHeaderBackground={handleToggleHeaderBackground}
+            fullscreenClass={topBarFullscreenClass}
+          />
+
+          {(error || createError) && (
+            <ErrorMessage
+              message={error || createError}
+              onDismiss={clearError}
+              onRetry={() => loadNotes(currentView, searchTerm)}
+            />
+          )}
+
+          <Sidebar
+            notes={notes}
+            selectedNote={selectedNote}
+            onSelectNote={setSelectedNote}
+            onCreateNote={handleCreateNote}
+            onDeleteNote={handleDeleteNote}
+            onPermanentDelete={permanentDelete}
+            onRestoreNote={handleRestoreNote}
+            onTogglePin={handleTogglePin}
+            onClearAllDeleted={handleClearAllDeleted}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            currentView={currentView}
+            onViewChange={handleViewChange}
+            counts={counts}
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={handleSidebarToggle}
+            isFullscreen={isFullscreen}
+            expandedFullscreenClass={
+              isFullscreen && isSmallScreen
+                ? fullscreenStyles.fullscreenSidebarExpanded
+                : ""
+            }
+            collapsedFullscreenClass={
+              isFullscreen && isSmallScreen
+                ? fullscreenStyles.fullscreenSidebarCollapsed
+                : ""
+            }
+          />
+
+          <MainContent
+            selectedNote={selectedNote}
+            setSelectedNote={setSelectedNote}
+            onUpdateNote={handleApplyOrUpdateNote}
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={handleSidebarToggle}
+            onTogglePin={handleTogglePin}
+            onDeleteNote={handleDeleteNote}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={toggleFullscreen}
+            isTransitioningFullscreen={isTransitioningFullscreen}
+            headerBackgroundEnabled={headerBackgroundEnabled}
+            onSetPasskey={handleSetPasskey}
+            onLockNote={handleLockNote}
+            onUnlockNote={handleUnlockNote}
+          />
+
+          <FloatingActionButton
+            onCreateNote={handleCreateNote}
+            selectedNote={selectedNote}
+            sidebarCollapsed={sidebarCollapsed}
+          />
+        </>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <div className={`${styles.app} ${isFullscreen ? "fullscreen-mode" : ""}`}>
-      {/* <CacheDebugPanel cache={cache} /> */}
-
-      <TopBar
-        headerBackgroundEnabled={headerBackgroundEnabled}
-        onToggleHeaderBackground={handleToggleHeaderBackground}
-        fullscreenClass={topBarFullscreenClass}
+      <LiquidLoadingOverlay
+        isLoading={initialLoading}
+        progress={progress}
+        onLoadingComplete={() => {
+          console.log("[v0] Liquid overlay fade-out complete");
+        }}
       />
 
-      {(error || createError) && (
-        <ErrorMessage
-          message={error || createError}
-          onDismiss={clearError}
-          onRetry={() => loadNotes(currentView, searchTerm)}
-        />
-      )}
-
-      <Sidebar
-        notes={notes}
-        selectedNote={selectedNote}
-        onSelectNote={setSelectedNote}
-        onCreateNote={handleCreateNote}
-        onDeleteNote={handleDeleteNote}
-        onPermanentDelete={permanentDelete}
-        onRestoreNote={handleRestoreNote}
-        onTogglePin={handleTogglePin}
-        onClearAllDeleted={handleClearAllDeleted}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        currentView={currentView}
-        onViewChange={handleViewChange}
-        counts={counts}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={handleSidebarToggle}
-        isFullscreen={isFullscreen}
-        expandedFullscreenClass={
-          isFullscreen && isSmallScreen
-            ? fullscreenStyles.fullscreenSidebarExpanded
-            : ""
-        }
-        collapsedFullscreenClass={
-          isFullscreen && isSmallScreen
-            ? fullscreenStyles.fullscreenSidebarCollapsed
-            : ""
-        }
-      />
-
-      <MainContent
-        selectedNote={selectedNote}
-        setSelectedNote={setSelectedNote}
-        onUpdateNote={handleApplyOrUpdateNote}
-        sidebarCollapsed={sidebarCollapsed}
-        onToggleSidebar={handleSidebarToggle}
-        onTogglePin={handleTogglePin}
-        onDeleteNote={handleDeleteNote}
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={toggleFullscreen}
-        isTransitioningFullscreen={isTransitioningFullscreen}
-        headerBackgroundEnabled={headerBackgroundEnabled}
-        onSetPasskey={handleSetPasskey}
-        onLockNote={handleLockNote}
-        onUnlockNote={handleUnlockNote}
-      />
-
-      <FloatingActionButton
-        onCreateNote={handleCreateNote}
-        selectedNote={selectedNote}
-        sidebarCollapsed={sidebarCollapsed}
-      />
+      {renderAppContent()}
     </div>
   );
 }
