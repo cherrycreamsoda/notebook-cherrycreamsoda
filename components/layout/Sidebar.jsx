@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 import SearchBar from "@components/widgets/SearchBar";
 import NavigationMenu from "@components/widgets/NavigationMenu";
@@ -33,6 +33,26 @@ const Sidebar = ({
   const sidebarRef = useRef(null);
   const { loading: createLoading, execute } = useAsyncAction();
   const [deleteAllConfirmation, setDeleteAllConfirmation] = useState(null);
+
+  const [showExpanded, setShowExpanded] = useState(!collapsed);
+  const [isCollapsing, setIsCollapsing] = useState(false);
+
+  useEffect(() => {
+    // When collapsing: keep expanded DOM, play collapse animation, then unmount
+    if (collapsed) {
+      if (showExpanded) {
+        setIsCollapsing(true);
+        const t = setTimeout(() => {
+          setIsCollapsing(false);
+          setShowExpanded(false);
+        }, 350); // keep in sync with CSS animation duration (400ms + buffer)
+        return () => clearTimeout(t);
+      }
+    } else {
+      // When expanding: mount the expanded DOM immediately; items already have slide-in animations
+      setShowExpanded(true);
+    }
+  }, [collapsed, showExpanded]);
 
   const handleCreateNote = useCallback(async () => {
     try {
@@ -77,7 +97,7 @@ const Sidebar = ({
     window.open("https://github.com/cherrycreamsoda", "_blank");
   };
 
-  if (collapsed) {
+  if (!showExpanded && collapsed) {
     return (
       <div
         className={`sidebar sidebar-collapsed ${
@@ -105,6 +125,8 @@ const Sidebar = ({
     <>
       <div
         className={`sidebar sidebar-expanded ${
+          isCollapsing ? "collapsing" : ""
+        } ${
           typeof window !== "undefined" &&
           window.innerWidth <= 768 &&
           isFullscreen
@@ -113,6 +135,20 @@ const Sidebar = ({
         }`.trim()}
         ref={sidebarRef}
         tabIndex={0}
+        onAnimationEnd={(e) => {
+          // Only handle the root collapse animation end, not child animations
+          if (!isCollapsing) return;
+          if (!(e.target instanceof HTMLElement)) return;
+          // Match our root collapsing class
+          if (
+            e.currentTarget === e.target &&
+            e.animationName &&
+            e.animationName.includes("sidebarCollapseOut")
+          ) {
+            setIsCollapsing(false);
+            setShowExpanded(false);
+          }
+        }}
       >
         <div className="sidebar-header">
           <div className="sidebar-brand"></div>
