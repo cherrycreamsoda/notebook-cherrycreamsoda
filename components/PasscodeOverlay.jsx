@@ -12,6 +12,7 @@ const PasscodeOverlay = ({
   const [passcode, setPasscode] = useState([]);
   const [feedbackMessage, setFeedbackMessage] = useState(message);
   const [showError, setShowError] = useState(isError);
+  const [isDismissing, setIsDismissing] = useState(false);
   const inputRef = useRef(null);
   const submittedRef = useRef(false);
 
@@ -51,16 +52,25 @@ const PasscodeOverlay = ({
       onPasscodeEntered(passcode.join(""));
     }
   }, [passcode]);
+
   const handleDismiss = () => {
-    submittedRef.current = false;
-    setPasscode([]);
-    setFeedbackMessage("");
-    setShowError(false);
-    onDismiss();
+    setIsDismissing(true);
+    setTimeout(() => {
+      submittedRef.current = false;
+      setPasscode([]);
+      setFeedbackMessage("");
+      setShowError(false);
+      onDismiss();
+    }, 300);
   };
 
   return (
-    <div className={styles.overlay} onClick={handleDismiss}>
+    <div
+      className={`${styles.overlay} ${
+        isDismissing ? styles.passcodeOverlayFadeOut : ""
+      }`}
+      onClick={handleDismiss}
+    >
       <div className={styles.content} onClick={(e) => e.stopPropagation()}>
         <div className={styles.passcodeCircles}>
           {[...Array(6)].map((_, index) => (
