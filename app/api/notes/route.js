@@ -16,14 +16,32 @@ export async function GET(req) {
 
     if (search) {
       const includeDeleted = view === "deleted";
+
+      const searchConditions = [
+        { title: { $regex: search, $options: "i" } },
+        { rawContent: { $regex: search, $options: "i" } },
+      ];
+
+      // Search in checklist items
+      searchConditions.push({
+        "content.items.text": { $regex: search, $options: "i" },
+      });
+
+      // Search in reminder text
+      searchConditions.push({
+        "content.reminders.text": { $regex: search, $options: "i" },
+      });
+
+      // Search in datasheet cell values
+      searchConditions.push({
+        "content.rows.cells.value": { $regex: search, $options: "i" },
+      });
+
       filter = {
         $and: [
           includeDeleted ? {} : { deleted: false },
           {
-            $or: [
-              { title: { $regex: search, $options: "i" } },
-              { rawContent: { $regex: search, $options: "i" } },
-            ],
+            $or: searchConditions,
           },
         ],
       };
@@ -53,7 +71,7 @@ export async function GET(req) {
       const hasPasskey = n.passkey !== null;
       if (n.locked) {
         o.content = "Note is Locked";
-        o.rawContent = "";
+        // Keep rawContent as-is for search functionality
       }
       o.hasPasskey = hasPasskey;
       return o;

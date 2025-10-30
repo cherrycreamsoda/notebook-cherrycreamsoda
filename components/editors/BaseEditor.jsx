@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import EditorToolbar from "../widgets/EditorToolbar";
 import ConfirmationDialog from "@components/common/ConfirmationDialog";
 import { useBaseEditor } from "@hooks/useBaseEditor.js";
@@ -76,6 +76,14 @@ const BaseEditor = ({
     setPasscodeError(false);
   };
 
+  const memoizedOnContentChange = useCallback(
+    (data) => {
+      if (selectedNote.locked) return;
+      return handleContentChange(data);
+    },
+    [handleContentChange, selectedNote.locked]
+  );
+
   return (
     <>
       {showToolbar && (
@@ -120,10 +128,7 @@ const BaseEditor = ({
               {!selectedNote.locked ? (
                 React.cloneElement(children, {
                   selectedNote,
-                  onContentChange: (data) => {
-                    if (selectedNote.locked) return;
-                    return handleContentChange(data);
-                  },
+                  onContentChange: memoizedOnContentChange,
                   updateCounts,
                   readOnly: selectedNote.locked,
                 })

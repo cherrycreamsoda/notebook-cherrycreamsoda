@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 import BaseEditor from "../BaseEditor";
 import ChecklistEditor from "../ChecklistEditor";
@@ -29,10 +29,13 @@ const ChecklistEditorContent = ({
     }
   }, [selectedNote, updateCounts]);
 
-  const handleContentChange = (newContent) => {
-    updateCounts(newContent);
-    onContentChange(newContent);
-  };
+  const handleContentChange = useCallback(
+    (newContent) => {
+      // Don't call updateCounts here - let BaseEditor handle it via handleContentChange
+      onContentChange(newContent);
+    },
+    [onContentChange]
+  );
 
   return (
     <ChecklistEditor
@@ -51,7 +54,11 @@ const ChecklistEditorWrapper = (props) => {
       showStatusBar={true}
       editorClassName="checklist-mode"
     >
-      <ChecklistEditorContent />
+      <ChecklistEditorContent
+        selectedNote={props.selectedNote}
+        onContentChange={props.onContentChange}
+        updateCounts={props.updateCounts}
+      />
     </BaseEditor>
   );
 };
