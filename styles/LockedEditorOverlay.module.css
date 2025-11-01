@@ -12,8 +12,8 @@
   color: #da3036 !important;
   background-color: #3d1719 !important;
   border-color: #991b1b !important;
-  /* add z-index to ensure overlay is clickable and covers full area */
-  z-index: 10;
+  /* Reduced z-index to allow header buttons to appear on top */
+  z-index: 5;
 }
 
 .lockedContent {
@@ -46,4 +46,39 @@
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
+}
+
+/* Added overlay buttons positioned exactly where header buttons should be */
+.overlayButtons {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 15;
+  pointer-events: auto;
+}
+
+.overlayBtn {
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: black;
+  transition: all 0.5s ease;
+}
+
+.overlayBtn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgb(255, 255, 255);
+  color: white;
 }

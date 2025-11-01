@@ -14,6 +14,18 @@ const PlainTextEditorContent = ({
   const [isScrolled, setIsScrolled] = useState(false);
 
   const handleKeyDown = useCallback((e) => {
+    if (e.key === "Enter" && plainTextRef.current) {
+      setTimeout(() => {
+        if (plainTextRef.current) {
+          const textarea = plainTextRef.current;
+          // Get current cursor position and scroll to show the next line
+          const scrollHeight = textarea.scrollHeight;
+          const clientHeight = textarea.clientHeight;
+          textarea.scrollTop = Math.max(scrollHeight - clientHeight, 0);
+        }
+      }, 0);
+    }
+
     if (e.key === "Escape") {
       e.preventDefault();
       plainTextRef.current?.blur();

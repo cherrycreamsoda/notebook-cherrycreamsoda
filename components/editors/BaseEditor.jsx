@@ -49,6 +49,15 @@ const BaseEditor = ({
     }
   }, [selectedNote?.locked]);
 
+  useEffect(() => {
+    window.showPasscodeOverlay = () => {
+      setShowPasscodeOverlay(true);
+    };
+    return () => {
+      window.showPasscodeOverlay = null;
+    };
+  }, []);
+
   const handleUnlockAttempt = async (enteredPasscode) => {
     setPasscodeMessage("");
     setPasscodeError(false);

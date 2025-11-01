@@ -129,6 +129,18 @@ const RichTextEditor = ({
       return;
     }
 
+    if (e.key === "Enter" && contentRef.current) {
+      setTimeout(() => {
+        if (contentRef.current) {
+          const cursorPos = window
+            .getSelection()
+            .getRangeAt(0)
+            .getBoundingClientRect();
+          contentRef.current.scrollTop += Math.max(cursorPos.height, 20);
+        }
+      }, 0);
+    }
+
     if (e.key === "Escape") {
       e.preventDefault();
       contentRef.current?.blur();

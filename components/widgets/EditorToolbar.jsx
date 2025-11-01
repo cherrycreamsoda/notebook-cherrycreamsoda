@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Bold,
   Italic,
@@ -149,12 +149,15 @@ const EditorToolbar = ({
     }
   };
 
+  const isTypeChangeDisabled =
+    !selectedNote || selectedNote.locked || selectedNote.pinned;
+
   return (
     <div className="formatting-toolbar">
       <NoteTypeDropdown
         selectedType={noteType}
         onTypeChange={onTypeChange}
-        disabled={!selectedNote}
+        disabled={isTypeChangeDisabled}
         shouldBlink={shouldBlinkDropdown}
       />
       <div className="toolbar-separator" />

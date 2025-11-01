@@ -5,6 +5,12 @@ import { Lock } from "lucide-react";
 const LockedEditorOverlay = ({ onClick }) => {
   return (
     <div className={styles.lockedOverlay} onClick={onClick}>
+      <div className={styles.overlayButtons}>
+        <button className={styles.overlayBtn} title="Overlay button">
+          <Lock size={16} />
+        </button>
+      </div>
+
       <div className={styles.lockedContent}>
         <div className={styles.hexagon}>
           <svg

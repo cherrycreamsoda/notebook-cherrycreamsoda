@@ -89,7 +89,9 @@ const NoteList = ({
         if (notes.length > 0 && selectedIndex >= 0) {
           const selected = notes[selectedIndex];
           if (selected) {
-            if (!selected.locked) {
+            if (selected.locked) {
+              window.showPasscodeOverlay?.();
+            } else {
               onSelectNote(selected);
               window.editorFocusHandler?.();
             }

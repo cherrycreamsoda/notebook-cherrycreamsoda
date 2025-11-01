@@ -24,6 +24,7 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
   const [shouldFocusTitle, setShouldFocusTitle] = useState(false);
   const [pendingUpdates, setPendingUpdates] = useState({});
   const [isUserEditing, setIsUserEditing] = useState(false);
+  const [lastEditedField, setLastEditedField] = useState(null);
 
   const titleInputRef = useRef(null);
   const noteType = selectedNote?.type || NOTE_TYPES.RICH_TEXT;
@@ -36,6 +37,8 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
 
       if (field === NOTE_FIELDS.CONTENT) {
         updates[NOTE_FIELDS.RAW_CONTENT] = extractPlainText(value);
+        // Always include the current title when content is saved
+        updates[NOTE_FIELDS.TITLE] = title;
       }
 
       setIsSaving(true);
@@ -46,7 +49,7 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
         setTimeout(() => setIsUserEditing(false), 100);
       }
     },
-    [selectedNote, onUpdateNote]
+    [selectedNote, onUpdateNote, title]
   );
 
   const { debouncedCallback: debouncedUpdate, cleanup } = useDebounce(
@@ -69,6 +72,7 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
     setIsUserEditing(true);
+    setLastEditedField(NOTE_FIELDS.TITLE);
     setPendingUpdates((prev) => ({ ...prev, [NOTE_FIELDS.TITLE]: newTitle }));
     debouncedUpdate(NOTE_FIELDS.TITLE, newTitle);
   };
@@ -79,6 +83,7 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
       const updates = {
         [NOTE_FIELDS.CONTENT]: content,
         [NOTE_FIELDS.RAW_CONTENT]: extractPlainText(content),
+        [NOTE_FIELDS.TITLE]: title,
       };
       setPendingUpdates({});
       handleUpdate(selectedNote._id, updates);
@@ -103,6 +108,7 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
         ...prev,
         [NOTE_FIELDS.CONTENT]: newContent,
       }));
+      setLastEditedField(NOTE_FIELDS.CONTENT);
       debouncedUpdate(NOTE_FIELDS.CONTENT, newContent);
     },
     [debouncedUpdate]
