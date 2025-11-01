@@ -89,8 +89,10 @@ const NoteList = ({
         if (notes.length > 0 && selectedIndex >= 0) {
           const selected = notes[selectedIndex];
           if (selected) {
-            onSelectNote(selected);
-            window.editorFocusHandler?.();
+            if (!selected.locked) {
+              onSelectNote(selected);
+              window.editorFocusHandler?.();
+            }
           }
         }
         return;

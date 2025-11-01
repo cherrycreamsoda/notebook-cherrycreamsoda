@@ -59,7 +59,7 @@ const Sidebar = ({
       await execute(async () => {
         await onCreateNote({
           type: "TEXT",
-          title: "New Note",
+          title: "", // changed from "New Note" to empty string
           content: "",
         });
       }, "Failed to create note");

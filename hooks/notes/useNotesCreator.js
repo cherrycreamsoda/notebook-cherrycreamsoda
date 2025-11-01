@@ -15,7 +15,7 @@ export const useNotesCreator = ({
     return execute(async () => {
       if (lastCreatedNote) {
         const isLastNoteEmpty =
-          lastCreatedNote.title === "New Note" &&
+          lastCreatedNote.title === "" &&
           (!lastCreatedNote.content ||
             (typeof lastCreatedNote.content === "string" &&
               lastCreatedNote.content.trim() === "") ||
@@ -101,7 +101,7 @@ export const useNotesCreator = ({
       }
 
       const noteWithDefaults = {
-        title: "New Note",
+        title: "",
         content: defaultContent,
         pinned: false,
         type: noteType,

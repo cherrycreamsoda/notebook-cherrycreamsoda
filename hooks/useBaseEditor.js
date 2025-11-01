@@ -213,10 +213,7 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
         setTitle(selectedNote.title || "");
       }
 
-      if (
-        selectedNote.title === "New Note" &&
-        isContentEmpty(selectedNote.content)
-      ) {
+      if (selectedNote.title === "" && isContentEmpty(selectedNote.content)) {
         setShouldFocusTitle(true);
       }
     }

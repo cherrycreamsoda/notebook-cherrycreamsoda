@@ -12,6 +12,8 @@
   color: #da3036 !important;
   background-color: #3d1719 !important;
   border-color: #991b1b !important;
+  /* add z-index to ensure overlay is clickable and covers full area */
+  z-index: 10;
 }
 
 .lockedContent {
@@ -19,6 +21,8 @@
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  /* ensure content doesn't interfere with parent's click handler */
+  pointer-events: none;
 }
 
 .hexagon {
