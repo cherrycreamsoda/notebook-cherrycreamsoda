@@ -5,6 +5,36 @@ import mongoose from "mongoose";
 
 const isValidId = (id) => mongoose.isValidObjectId(id);
 
+const extractPlainTextServer = (content) => {
+  if (!content) return "";
+
+  if (typeof content === "string") {
+    return content
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .trim();
+  }
+
+  if (content?.items) {
+    return content.items.map((i) => i.text || "").join(" ");
+  }
+
+  if (content?.rows) {
+    return content.rows
+      .map((row) => row.cells.map((cell) => cell.value || "").join(" "))
+      .join(" ");
+  }
+
+  if (content?.reminders) {
+    return content.reminders.map((r) => r.text || "").join(" ");
+  }
+
+  return "";
+};
+
 export async function GET(req, context) {
   await dbConnect();
   const { id } = await context.params;
@@ -61,6 +91,10 @@ export async function PUT(req, context) {
     const $set = {};
     for (const k of allowed) {
       if (k in body) $set[k] = body[k];
+    }
+
+    if ($set.content !== undefined && $set.rawContent === undefined) {
+      $set.rawContent = extractPlainTextServer($set.content);
     }
 
     const note = await Note.findByIdAndUpdate(id, { $set }, { new: true });

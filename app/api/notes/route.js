@@ -2,6 +2,36 @@ import { NextResponse } from "next/server";
 import dbConnect from "@lib/db";
 import Note from "@lib/models/Note";
 
+const extractPlainTextServer = (content) => {
+  if (!content) return "";
+
+  if (typeof content === "string") {
+    return content
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .trim();
+  }
+
+  if (content?.items) {
+    return content.items.map((i) => i.text || "").join(" ");
+  }
+
+  if (content?.rows) {
+    return content.rows
+      .map((row) => row.cells.map((cell) => cell.value || "").join(" "))
+      .join(" ");
+  }
+
+  if (content?.reminders) {
+    return content.reminders.map((r) => r.text || "").join(" ");
+  }
+
+  return "";
+};
+
 export async function GET(req) {
   await dbConnect();
 
@@ -20,6 +50,8 @@ export async function GET(req) {
       const searchConditions = [
         { title: { $regex: search, $options: "i" } },
         { rawContent: { $regex: search, $options: "i" } },
+        // Search in generic content field (for RICH_TEXT and TEXT types)
+        { content: { $regex: search, $options: "i" } },
       ];
 
       // Search in checklist items
@@ -40,6 +72,7 @@ export async function GET(req) {
       filter = {
         $and: [
           includeDeleted ? {} : { deleted: false },
+          { locked: false },
           {
             $or: searchConditions,
           },
@@ -91,10 +124,13 @@ export async function POST(req) {
 
   try {
     const body = await req.json();
+    const rawContent =
+      body.rawContent || extractPlainTextServer(body.content) || "";
+
     const note = await Note.create({
       title: body.title ?? "Untitled",
       content: body.content ?? "",
-      rawContent: body.rawContent ?? "",
+      rawContent: rawContent,
       type: body.type ?? "TEXT",
       pinned: !!body.pinned,
       deleted: false,
