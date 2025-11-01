@@ -35,7 +35,7 @@ const ChecklistEditor = ({ content, onContentChange }) => {
 
   useEffect(() => {
     memoizedOnContentChange();
-  }, [items]);
+  }, [memoizedOnContentChange]);
 
   const addItem = (index = -1) => {
     const newItem = { id: generateId(), text: "", checked: false };

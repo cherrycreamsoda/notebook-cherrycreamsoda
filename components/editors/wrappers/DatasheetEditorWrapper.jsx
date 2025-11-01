@@ -16,12 +16,11 @@ const DatasheetEditorContent = ({
     };
   }, []);
 
-  // Only depend on selectedNote ID to initialize counts once
   useEffect(() => {
     if (selectedNote) {
       updateCounts(selectedNote.content || { columns: [], rows: [] });
     }
-  }, [selectedNote]); // Depend on the entire object to ensure all changes are captured
+  }, [selectedNote, updateCounts]);
 
   const handleContentChange = useCallback(
     (newContent) => {
@@ -48,7 +47,11 @@ const DatasheetEditorWrapper = (props) => {
       showStatusBar={true}
       editorClassName="datasheet-mode"
     >
-      <DatasheetEditorContent />
+      <DatasheetEditorContent
+        selectedNote={props.selectedNote}
+        onContentChange={props.onContentChange}
+        updateCounts={props.updateCounts}
+      />
     </BaseEditor>
   );
 };

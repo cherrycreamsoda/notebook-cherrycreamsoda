@@ -23,12 +23,11 @@ const RemindersEditorContent = ({
     };
   }, []);
 
-  // Only depend on selectedNote to initialize counts once
   useEffect(() => {
     if (selectedNote) {
       updateCounts(selectedNote.content || { reminders: [] });
     }
-  }, [selectedNote]); // Depend on the entire object to ensure all changes are captured
+  }, [selectedNote, updateCounts]);
 
   const handleContentChange = useCallback(
     (newContent) => {
@@ -55,7 +54,11 @@ const RemindersEditorWrapper = (props) => {
       showStatusBar={true}
       editorClassName="reminders-mode"
     >
-      <RemindersEditorContent />
+      <RemindersEditorContent
+        selectedNote={props.selectedNote}
+        onContentChange={props.onContentChange}
+        updateCounts={props.updateCounts}
+      />
     </BaseEditor>
   );
 };

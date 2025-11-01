@@ -29,7 +29,7 @@ export async function GET(req, context) {
       const safe = {
         ...note.toObject(),
         content: "Note is Locked",
-        rawContent: "",
+        rawContent: note.rawContent, // Keep rawContent for search functionality on locked notes
       };
       return NextResponse.json({ success: true, data: safe });
     }

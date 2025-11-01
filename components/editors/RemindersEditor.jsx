@@ -48,7 +48,7 @@ const RemindersEditor = ({ content, onContentChange }) => {
 
   useEffect(() => {
     memoizedOnContentChange();
-  }, [reminders]);
+  }, [memoizedOnContentChange]);
 
   const addReminder = () => {
     const newReminder = {
