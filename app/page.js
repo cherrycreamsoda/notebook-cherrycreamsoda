@@ -14,6 +14,7 @@ import useLoadingProgress from "@hooks/useLoadingProgress";
 
 import { useNotes } from "@hooks/useNotes";
 import { checkBackendHealth } from "@lib/services/api";
+import DonateHeart from "@components/widgets/DonateHeart";
 
 function PageContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -316,6 +317,8 @@ function PageContent() {
             selectedNote={selectedNote}
             sidebarCollapsed={sidebarCollapsed}
           />
+
+          <DonateHeart />
         </>
       );
     }
