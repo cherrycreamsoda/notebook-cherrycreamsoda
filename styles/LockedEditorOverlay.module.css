@@ -82,3 +82,49 @@
   border: 1px solid rgb(255, 255, 255);
   color: white;
 }
+
+/* Add header buttons layer styling to display buttons above overlay */
+.headerButtonsLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.headerLeftActions,
+.headerRightActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.headerBtn {
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s ease;
+  width: 32px;
+  height: 32px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.headerBtn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgb(255, 255, 255);
+  color: white;
+}

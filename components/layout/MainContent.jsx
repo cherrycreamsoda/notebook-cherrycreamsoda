@@ -250,6 +250,11 @@ const MainContent = ({
           key={`${selectedNote._id}:${selectedNote.locked ? "L" : "U"}`}
           selectedNote={selectedNote}
           onUpdateNote={onUpdateNote}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={onToggleSidebar}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={onToggleFullscreen}
+          handleCloseNote={handleCloseNote}
         />
       </div>
 

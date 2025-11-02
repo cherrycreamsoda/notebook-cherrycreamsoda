@@ -16,6 +16,11 @@ const BaseEditor = ({
   showToolbar = true,
   showStatusBar = true,
   editorClassName = "",
+  sidebarCollapsed,
+  onToggleSidebar,
+  isFullscreen,
+  onToggleFullscreen,
+  handleCloseNote,
 }) => {
   const {
     title,
@@ -107,7 +112,14 @@ const BaseEditor = ({
       <div className="editor-content-area">
         <div className={`note-editor ${editorClassName}`}>
           {selectedNote.locked && (
-            <LockedEditorOverlay onClick={() => setShowPasscodeOverlay(true)} />
+            <LockedEditorOverlay
+              onClick={() => setShowPasscodeOverlay(true)}
+              sidebarCollapsed={sidebarCollapsed}
+              onToggleSidebar={onToggleSidebar}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={onToggleFullscreen}
+              handleCloseNote={handleCloseNote}
+            />
           )}
 
           {showTitle && (
