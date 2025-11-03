@@ -49,13 +49,7 @@ export async function PUT(req, context) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        _id: updatedNote._id,
-        deleted: updatedNote.deleted,
-      },
-    });
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

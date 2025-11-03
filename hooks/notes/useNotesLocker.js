@@ -12,14 +12,12 @@ export const useNotesLocker = ({
 }) => {
   const setPasskey = async (id, passkey) => {
     return execute(async () => {
-      const leanUpdated = await notesAPI.setPasskey(id, passkey);
+      await notesAPI.setPasskey(id, passkey);
       const localNote =
         selectedNote?._id === id
           ? selectedNote
           : allNotes?.find((n) => n._id === id);
-      const fullNote = localNote
-        ? { ...localNote, ...leanUpdated }
-        : leanUpdated;
+      const fullNote = localNote ? { ...localNote } : null;
       updateNoteInArrays(id, fullNote);
       if (selectedNote?._id === id) setSelectedNote(fullNote);
       return fullNote;
@@ -28,14 +26,12 @@ export const useNotesLocker = ({
 
   const lockNote = async (id) => {
     return execute(async () => {
-      const leanUpdated = await notesAPI.lockNote(id);
+      await notesAPI.lockNote(id);
       const localNote =
         selectedNote?._id === id
           ? selectedNote
           : allNotes?.find((n) => n._id === id);
-      const fullNote = localNote
-        ? { ...localNote, ...leanUpdated }
-        : leanUpdated;
+      const fullNote = localNote ? { ...localNote, locked: true } : null;
       updateNoteInArrays(id, fullNote);
       if (selectedNote?._id === id) setSelectedNote(fullNote);
       return fullNote;
@@ -44,14 +40,14 @@ export const useNotesLocker = ({
 
   const unlockNote = async (id, passkey) => {
     return execute(async () => {
-      const leanUpdated = await notesAPI.unlockNote(id, passkey);
+      await notesAPI.unlockNote(id, passkey);
       const localNote =
         selectedNote?._id === id
           ? selectedNote
           : allNotes?.find((n) => n._id === id);
 
-      // Merge lean data with local note
-      let fullNote = localNote ? { ...localNote, ...leanUpdated } : leanUpdated;
+      // Update local note with unlocked flag
+      let fullNote = localNote ? { ...localNote, locked: false } : null;
 
       // For unlocked notes, fetch full content to ensure editor works properly
       try {
@@ -60,7 +56,6 @@ export const useNotesLocker = ({
           fullNote = freshNote;
         }
       } catch (e) {
-        // Fallback to merged note if fetch fails
         console.warn(
           "Failed to fetch full note after unlock, using merged data",
           e

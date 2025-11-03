@@ -104,7 +104,7 @@ export async function GET(req) {
       const hasPasskey = n.passkey !== null;
       if (n.locked) {
         o.content = "Note is Locked";
-        // Keep rawContent as-is for search functionality
+        o.rawContent = "";
       }
       o.hasPasskey = hasPasskey;
       return o;

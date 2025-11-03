@@ -42,8 +42,8 @@ export const useNotesUpdater = ({
         return { blocked: true, note: current };
       }
 
-      const leanUpdated = await notesAPI.togglePin(id);
-      const fullNote = current ? { ...current, ...leanUpdated } : leanUpdated;
+      await notesAPI.togglePin(id);
+      const fullNote = current ? { ...current, pinned: !current.pinned } : null;
       updateNoteInArrays(id, fullNote);
       return fullNote;
     }, "Failed to toggle pin");

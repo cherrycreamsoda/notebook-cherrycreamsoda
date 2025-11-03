@@ -57,10 +57,8 @@ export const useNotesDeleter = ({
         return { blocked: true, note: noteToDelete };
       }
 
-      const leanDeleted = await notesAPI.deleteNote(id);
-      const fullNote = noteToDelete
-        ? { ...noteToDelete, ...leanDeleted }
-        : leanDeleted;
+      await notesAPI.deleteNote(id);
+      const fullNote = noteToDelete ? { ...noteToDelete, deleted: true } : null;
 
       if (fullNote && fullNote._id) {
         updateNoteInArrays(fullNote._id, fullNote);
@@ -93,11 +91,9 @@ export const useNotesDeleter = ({
 
   const restoreNote = async (id) => {
     return execute(async () => {
-      const leanRestored = await notesAPI.restoreNote(id);
+      await notesAPI.restoreNote(id);
       const localNote = allNotes?.find((n) => n._id === id);
-      const fullNote = localNote
-        ? { ...localNote, ...leanRestored }
-        : leanRestored;
+      const fullNote = localNote ? { ...localNote, deleted: false } : null;
 
       if (fullNote && fullNote._id) {
         updateNoteInArrays(fullNote._id, fullNote);

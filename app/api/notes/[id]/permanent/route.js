@@ -51,7 +51,7 @@ export async function DELETE(req, context) {
         { status: 404 }
       );
     }
-    return NextResponse.json({ success: true, data: { _id: id } });
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

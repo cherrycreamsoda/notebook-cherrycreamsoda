@@ -33,13 +33,7 @@ export async function PUT(req, context) {
     note.pinned = !note.pinned;
     await note.save();
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        _id: note._id,
-        pinned: note.pinned,
-      },
-    });
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

@@ -50,13 +50,7 @@ export async function PUT(req, context) {
     note.locked = false;
     await note.save();
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        _id: note._id,
-        locked: note.locked,
-      },
-    });
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },
