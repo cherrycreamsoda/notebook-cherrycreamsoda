@@ -48,7 +48,14 @@ export async function PUT(req, context) {
         { status: 404 }
       );
     }
-    return NextResponse.json({ success: true, data: updatedNote });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        _id: updatedNote._id,
+        deleted: updatedNote.deleted,
+      },
+    });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

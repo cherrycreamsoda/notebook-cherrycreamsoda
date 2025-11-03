@@ -42,9 +42,10 @@ export const useNotesUpdater = ({
         return { blocked: true, note: current };
       }
 
-      const updatedNote = await notesAPI.togglePin(id);
-      updateNoteInArrays(id, updatedNote);
-      return updatedNote;
+      const leanUpdated = await notesAPI.togglePin(id);
+      const fullNote = current ? { ...current, ...leanUpdated } : leanUpdated;
+      updateNoteInArrays(id, fullNote);
+      return fullNote;
     }, "Failed to toggle pin");
   };
 

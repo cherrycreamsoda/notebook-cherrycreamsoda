@@ -158,7 +158,13 @@ export async function DELETE(req, context) {
       );
     }
 
-    return NextResponse.json({ success: true, data: note });
+    return NextResponse.json({
+      success: true,
+      data: {
+        _id: note._id,
+        deleted: note.deleted,
+      },
+    });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

@@ -40,12 +40,13 @@ export async function PUT(req, context) {
     note.locked = true;
     await note.save();
 
-    const safe = {
-      ...note.toObject(),
-      content: "Note is Locked",
-      rawContent: "",
-    };
-    return NextResponse.json({ success: true, data: safe });
+    return NextResponse.json({
+      success: true,
+      data: {
+        _id: note._id,
+        locked: note.locked,
+      },
+    });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

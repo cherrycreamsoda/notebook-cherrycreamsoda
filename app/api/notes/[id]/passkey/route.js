@@ -41,7 +41,12 @@ export async function PUT(req, context) {
     note.passkey = passkey;
     await note.save();
 
-    return NextResponse.json({ success: true, data: note });
+    return NextResponse.json({
+      success: true,
+      data: {
+        _id: note._id,
+      },
+    });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },
