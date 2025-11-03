@@ -13,6 +13,26 @@
   overflow: hidden;
 }
 
+/* Add styles for header hidden state */
+.main-content.header-hidden {
+  margin: 0;
+  margin-top: 0 !important;
+  border-radius: 0;
+}
+
+.main-content.header-hidden .main-header {
+  height: 0;
+  min-height: 0;
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.main-content.header-hidden .main-header.header-collapsed {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .main-content.fullscreen {
   margin-top: 8px;
 }
@@ -30,6 +50,10 @@
   position: relative;
   overflow: hidden;
   transition: all 0.8s ease-in-out;
+}
+
+.main-header.header-collapsed {
+  transition: all 0.6s ease-in-out;
 }
 
 .main-header::before {
@@ -251,6 +275,17 @@
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Add specific styling for header hide button */
+.format-btn.header-hide-btn {
+  margin-left: auto;
+}
+
+.format-btn.header-hide-btn.active {
+  background: rgba(34, 197, 148, 0.3);
+  color: #22c594;
+  border-color: rgba(34, 197, 148, 0.5);
 }
 
 .format-btn.smart.active {

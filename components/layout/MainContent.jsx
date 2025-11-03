@@ -39,6 +39,7 @@ const MainContent = ({
   const { loading: deleteLoading, execute: executeDelete } = useAsyncAction();
   const { loading: lockLoading, execute: executeLock } = useAsyncAction();
   const headerRef = useRef(null);
+  const mainContentRef = useRef(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showPasscodeSetupOverlay, setShowPasscodeSetupOverlay] =
     useState(false);
@@ -46,6 +47,7 @@ const MainContent = ({
   const [passcodeSetupError, setPasscodeSetupError] = useState(false);
   const [passcodeOverlayMode, setPasscodeOverlayMode] = useState("setup");
   const [selectedHasPasskey, setSelectedHasPasskey] = useState(undefined); //
+  const [headerHidden, setHeaderHidden] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -197,12 +199,30 @@ const MainContent = ({
     return classes;
   };
 
+  const handleToggleHeaderHide = async () => {
+    if (!headerHidden && !isFullscreen) {
+      // Entering fullscreen + hiding header
+      await onToggleFullscreen();
+      // Small delay to ensure fullscreen transition completes
+      setTimeout(() => {
+        setHeaderHidden(true);
+      }, 300);
+    } else {
+      // Exiting header hide (and fullscreen)
+      setHeaderHidden(false);
+      await onToggleFullscreen();
+    }
+  };
+
   if (!selectedNote) {
     return (
       <div
         className={`main-content ${
           sidebarCollapsed ? "sidebar-collapsed" : ""
-        } ${isFullscreen ? "fullscreen" : ""}`.trim()}
+        } ${isFullscreen ? "fullscreen" : ""} ${
+          headerHidden ? "header-hidden" : ""
+        }`.trim()}
+        ref={mainContentRef}
       >
         <MainHeader
           ref={headerRef}
@@ -211,6 +231,7 @@ const MainContent = ({
           onToggleSidebar={onToggleSidebar}
           isFullscreen={isFullscreen}
           onToggleFullscreen={onToggleFullscreen}
+          headerHidden={headerHidden}
         />
         <div className="main-content-inner">
           <div className="empty-main">
@@ -225,7 +246,8 @@ const MainContent = ({
     <div
       className={`main-content ${sidebarCollapsed ? "sidebar-collapsed" : ""} ${
         isFullscreen ? "fullscreen" : ""
-      }`.trim()}
+      } ${headerHidden ? "header-hidden" : ""}`.trim()}
+      ref={mainContentRef}
     >
       <MainHeader
         ref={headerRef}
@@ -242,7 +264,8 @@ const MainContent = ({
         deleteLoading={deleteLoading}
         onToggleLock={handleToggleLock}
         lockLoading={lockLoading}
-        hasPasskey={selectedHasPasskey === true} // pass explicit API boolean
+        hasPasskey={selectedHasPasskey === true}
+        headerHidden={headerHidden}
       />
 
       <div className="main-content-inner">
@@ -255,6 +278,8 @@ const MainContent = ({
           isFullscreen={isFullscreen}
           onToggleFullscreen={onToggleFullscreen}
           handleCloseNote={handleCloseNote}
+          headerHidden={headerHidden}
+          onToggleHeaderHide={handleToggleHeaderHide}
         />
       </div>
 
@@ -286,11 +311,15 @@ const MainHeader = React.forwardRef(
       deleteLoading,
       onToggleLock,
       lockLoading,
-      hasPasskey, // new prop
+      hasPasskey,
+      headerHidden,
     },
     ref
   ) => (
-    <div className={className} ref={ref}>
+    <div
+      className={`${className} ${headerHidden ? "header-collapsed" : ""}`}
+      ref={ref}
+    >
       <div className="header-left-actions">
         <button
           className={`note-header-btn ${sidebarCollapsed ? "" : "active"}`}

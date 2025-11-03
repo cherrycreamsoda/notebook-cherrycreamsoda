@@ -41,6 +41,8 @@ const EditorContainer = ({
   isFullscreen,
   onToggleFullscreen,
   handleCloseNote,
+  headerHidden,
+  onToggleHeaderHide,
 }) => {
   if (!selectedNote) {
     return null;
@@ -55,6 +57,8 @@ const EditorContainer = ({
     isFullscreen,
     onToggleFullscreen,
     handleCloseNote,
+    headerHidden,
+    onToggleHeaderHide,
   };
 
   switch (noteType) {

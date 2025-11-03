@@ -21,6 +21,8 @@ const BaseEditor = ({
   isFullscreen,
   onToggleFullscreen,
   handleCloseNote,
+  headerHidden,
+  onToggleHeaderHide,
 }) => {
   const {
     title,
@@ -106,6 +108,8 @@ const BaseEditor = ({
           selectedNote={selectedNote}
           onTypeChange={handleTypeChange}
           shouldBlinkDropdown={shouldBlinkDropdown}
+          headerHidden={headerHidden}
+          onToggleHeaderHide={onToggleHeaderHide}
         />
       )}
 

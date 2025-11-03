@@ -9,6 +9,8 @@ import {
   Type,
   Minus,
   FileText,
+  Maximize2,
+  ChevronUp,
 } from "lucide-react";
 
 import NoteTypeDropdown from "./NoteTypeDropdown";
@@ -19,6 +21,8 @@ const EditorToolbar = ({
   selectedNote,
   onTypeChange,
   shouldBlinkDropdown = false,
+  headerHidden = false,
+  onToggleHeaderHide,
 }) => {
   const [buttonStates, setButtonStates] = useState(DEFAULT_BUTTON_STATES);
 
@@ -162,6 +166,15 @@ const EditorToolbar = ({
       />
       <div className="toolbar-separator" />
       {renderEditorSpecificTools()}
+      <div className="toolbar-separator" />
+      <button
+        className={`format-btn header-hide-btn ${headerHidden ? "active" : ""}`}
+        onClick={onToggleHeaderHide}
+        title={headerHidden ? "Show header" : "Hide header & fullscreen"}
+        disabled={!selectedNote}
+      >
+        {headerHidden ? <ChevronUp size={14} /> : <Maximize2 size={14} />}
+      </button>
     </div>
   );
 };
