@@ -15,8 +15,7 @@
 
 /* Add styles for header hidden state */
 .main-content.header-hidden {
-  margin: 0;
-  margin-top: 0 !important;
+  margin: 0 !important;
   border-radius: 0;
 }
 
@@ -26,11 +25,28 @@
   max-height: 0;
   padding: 0;
   overflow: hidden;
+  /* smooth fade out transition */
+  transition: all 0.8s ease-in-out;
 }
 
 .main-content.header-hidden .main-header.header-collapsed {
+  /* ensure opacity fades to 0 during collapse */
   opacity: 0;
   pointer-events: none;
+  transition: all 0.8s ease-in-out;
+}
+
+/* add fade transition for header actions and buttons */
+.main-content.header-hidden .header-left-actions,
+.main-content.header-hidden .note-header-actions {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* add fade transition for header pseudo element gradient */
+.main-content.header-hidden .main-header::before {
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
 }
 
 .main-content.fullscreen {
@@ -54,6 +70,8 @@
 
 .main-header.header-collapsed {
   transition: all 0.6s ease-in-out;
+  /* add opacity transition for smooth fade */
+  opacity: 0;
 }
 
 .main-header::before {
