@@ -93,7 +93,6 @@ function PageContent() {
 
   useEffect(() => {
     if (isFullscreen) {
-      setSidebarCollapsed(true);
     }
   }, [isFullscreen]);
 
@@ -153,8 +152,7 @@ function PageContent() {
   const toggleFullscreen = async () => {
     if (!isFullscreen && !sidebarCollapsed) {
       setIsTransitioningFullscreen(true);
-      setSidebarCollapsed(true);
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await new Promise((resolve) => setTimeout(resolve));
       setIsFullscreen(true);
       setIsTransitioningFullscreen(false);
     } else {
