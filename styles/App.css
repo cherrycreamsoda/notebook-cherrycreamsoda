@@ -79,7 +79,6 @@
     #dddc9f
   );
   background-size: 300% 300%;
-  animation: gradientMove 20s infinite;
   box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
 }
 
@@ -146,16 +145,31 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.app.fullscreen-mode .sidebar-expanded {
-  width: 100%;
-  position: absolute;
-  z-index: 1000;
+@media (max-width: 768px) {
+  .app.fullscreen-mode .sidebar-expanded {
+    width: 100% !important;
+    position: absolute !important;
+    z-index: 1000 !important;
+  }
+  .app.fullscreen-mode .sidebar-collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
 }
 
-.app.fullscreen-mode .sidebar-collapsed {
-  width: 0;
-  min-width: 0;
-  overflow: hidden;
+@media (min-width: 769px) {
+  /* Ensure desktop/tablet do NOT use fullscreen overlay behavior */
+  .app.fullscreen-mode .sidebar-expanded {
+    width: 250px !important;
+    position: fixed !important;
+    z-index: auto !important;
+  }
+  .app.fullscreen-mode .sidebar-collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
 }
 
 .coming-soon-tooltip {

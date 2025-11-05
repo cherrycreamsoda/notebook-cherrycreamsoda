@@ -21,7 +21,23 @@ export const useNotesState = () => {
     cache.updateCachedNote(noteId, updatedNote);
 
     if (selectedNote?._id === noteId && selectedNote?._id === updatedNote._id) {
-      setSelectedNote(updatedNote);
+      const structuralFields = [
+        "title",
+        "type",
+        "locked",
+        "pinned",
+        "passkey",
+        "deleted",
+      ];
+      const structuralChanged = structuralFields.some(
+        (f) => selectedNote[f] !== updatedNote[f]
+      );
+
+      if (structuralChanged) {
+        setSelectedNote(updatedNote);
+      }
+      // If only content changed, keep the current selectedNote reference stable:
+      // this preserves caret position and stops the editor from re-initializing mid-typing.
     }
   };
 
@@ -47,25 +63,43 @@ export const useNotesState = () => {
 
     console.log("Selecting note:", note._id, "title:", note.title);
 
-    // First, check if we have the full note in cache
-    const cachedNote = cache.getCachedNote(note._id);
+    if (note.locked) {
+      const safeLocked = {
+        ...note,
+        content: "Note is Locked",
+        rawContent: "",
+      };
+      cache.setCachedNote(note._id, safeLocked);
+      setSelectedNote(safeLocked);
+      setCreateError(null);
+      console.log("Selected locked note as safe/blanked");
+      return safeLocked;
+    }
 
+    const cachedNote = cache.getCachedNote(note._id);
     if (cachedNote) {
-      // Use cached version immediately
+      // If cache is stale (locked) but the provided note is unlocked, override cache and use provided note
+      if (cachedNote.locked && note.locked === false) {
+        cache.setCachedNote(note._id, note);
+        setSelectedNote(note);
+        setCreateError(null);
+        console.log(
+          "Overriding stale locked cache with unlocked provided note"
+        );
+        return note;
+      }
+
       setSelectedNote(cachedNote);
       setCreateError(null);
       console.log("Using cached note for selection");
       return cachedNote;
     }
 
-    // If not in cache, check if the note from the list has full content
-    // Notes from list might only have preview data
     if (
       note.content &&
       typeof note.content === "object" &&
       Object.keys(note.content).length > 0
     ) {
-      // Note seems to have full content, cache it and use it
       cache.setCachedNote(note._id, note);
       setSelectedNote(note);
       setCreateError(null);
@@ -73,13 +107,11 @@ export const useNotesState = () => {
       return note;
     }
 
-    // If we have a fetchNoteById function, fetch the full note
     if (fetchNoteById) {
       console.log("Fetching full note from server");
       try {
         const fullNote = await fetchNoteById(note._id);
         if (fullNote) {
-          // Cache the fetched note
           cache.setCachedNote(fullNote._id, fullNote);
           setSelectedNote(fullNote);
           setCreateError(null);
@@ -91,7 +123,6 @@ export const useNotesState = () => {
       }
     }
 
-    // Fallback: use the note as-is
     setSelectedNote(note);
     setCreateError(null);
     console.log("Using note as-is (fallback)");
@@ -99,19 +130,18 @@ export const useNotesState = () => {
   };
 
   return {
-    // State
     notes,
     allNotes,
     selectedNote,
     lastCreatedNote,
     createError,
-    // State setters
+
     setNotes,
     setAllNotes,
     setSelectedNote,
     setLastCreatedNote,
     setCreateError,
-    // Helper functions
+
     updateNoteInArrays,
     removeNoteFromArrays,
     selectNote,

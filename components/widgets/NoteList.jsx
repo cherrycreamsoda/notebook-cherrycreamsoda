@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import LoadingSpinner from "@components/common/LoadingSpinner";
 import ConfirmationDialog from "@components/common/ConfirmationDialog";
 import { formatDate, getPreview } from "@lib/utils/dateUtils";
+import { notesAPI } from "@lib/services/api";
 
 import {
   ArrowLeft,
@@ -17,6 +18,8 @@ import {
   CheckSquare,
   Bell,
   Table,
+  Lock,
+  Unlock,
 } from "lucide-react";
 
 const NOTE_TYPE_ICONS = {
@@ -45,6 +48,8 @@ const NoteList = ({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [loadingStates, setLoadingStates] = useState({});
   const [confirmDialog, setConfirmDialog] = useState(null);
+  const [hasPasskeyById, setHasPasskeyById] = useState({}); // cache hasPasskey per note
+  const [prevLockedById, setPrevLockedById] = useState({}); // Track previous locked state to trigger hasPasskey revalidation on lock/unlock
 
   useEffect(() => {
     if (selectedNote) {
@@ -84,8 +89,12 @@ const NoteList = ({
         if (notes.length > 0 && selectedIndex >= 0) {
           const selected = notes[selectedIndex];
           if (selected) {
-            onSelectNote(selected);
-            window.editorFocusHandler?.();
+            if (selected.locked) {
+              window.showPasscodeOverlay?.();
+            } else {
+              onSelectNote(selected);
+              window.editorFocusHandler?.();
+            }
           }
         }
         return;
@@ -130,6 +139,89 @@ const NoteList = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [confirmDialog]);
+
+  useEffect(() => {
+    let active = true;
+    const fetchFlags = async () => {
+      // Only fetch for notes we haven't checked yet (undefined), not for those confirmed false
+      const missing = notes.filter((n) => hasPasskeyById[n._id] === undefined);
+      if (missing.length === 0) return;
+
+      const entries = await Promise.all(
+        missing.map(async (n) => {
+          try {
+            const flag = await notesAPI.hasPasskey(n._id);
+            return [n._id, flag];
+          } catch {
+            return [n._id, false];
+          }
+        })
+      );
+
+      if (!active) return;
+      setHasPasskeyById((prev) => {
+        const next = { ...prev };
+        for (const [id, flag] of entries) {
+          next[id] = flag;
+        }
+        return next;
+      });
+    };
+
+    fetchFlags();
+    return () => {
+      active = false;
+    };
+    // ✅ removed hasPasskeyById to prevent infinite loops
+  }, [notes]);
+
+  useEffect(() => {
+    let active = true;
+    const changedIds = notes
+      .filter(
+        (n) =>
+          prevLockedById[n._id] !== undefined &&
+          prevLockedById[n._id] !== n.locked
+      )
+      .map((n) => n._id);
+    if (changedIds.length === 0) {
+      // still update snapshot of locked states
+      setPrevLockedById(
+        Object.fromEntries(notes.map((n) => [n._id, !!n.locked]))
+      );
+      return;
+    }
+    const run = async () => {
+      try {
+        const entries = await Promise.all(
+          changedIds.map(async (id) => {
+            try {
+              const flag = await notesAPI.hasPasskey(id);
+              return [id, flag];
+            } catch {
+              return [id, hasPasskeyById[id] ?? false];
+            }
+          })
+        );
+        if (!active) return;
+        setHasPasskeyById((prev) => {
+          const next = { ...prev };
+          for (const [id, flag] of entries) next[id] = flag;
+          return next;
+        });
+      } finally {
+        if (active) {
+          setPrevLockedById(
+            Object.fromEntries(notes.map((n) => [n._id, !!n.locked]))
+          );
+        }
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
+  }, [notes, hasPasskeyById]);
 
   const handleAction = async (actionFn, actionId) => {
     try {
@@ -235,6 +327,7 @@ const NoteList = ({
               }}
               onPermanentDelete={handlePermanentDelete}
               loadingStates={loadingStates}
+              hasPasskeyById={hasPasskeyById}
             />
           ))
         )}
@@ -289,11 +382,17 @@ const NoteItem = ({
   onTogglePin,
   onPermanentDelete,
   loadingStates,
+  hasPasskeyById,
 }) => {
   const TypeIcon = NOTE_TYPE_ICONS[note.type] || FileText;
 
+  const hasPasskey = hasPasskeyById?.[note._id] === true;
+
   const getPreviewText = () => {
     try {
+      if (note.locked) {
+        return "Note is locked";
+      }
       const preview = getPreview(note.content, note.type);
       return String(preview || "No additional text");
     } catch (error) {
@@ -310,12 +409,29 @@ const NoteItem = ({
       style={{ "--item-index": index }}
       onClick={onSelect}
     >
-      <div className="note-type-icon">
-        <TypeIcon size={14} />
+      <div className="note-type-stack">
+        <div className="note-type-icon">
+          <TypeIcon size={14} />
+        </div>
+        {hasPasskey && (
+          <div className="note-type-lock-under">
+            {note.locked ? (
+              <Lock size={12} className="note-lock-icon locked" />
+            ) : (
+              <Unlock size={12} className="note-lock-icon unlocked" />
+            )}
+          </div>
+        )}
       </div>
       <div className="note-content">
         <h4 className="note-title">{String(note.title || "Untitled")}</h4>
-        <p className="note-preview">{getPreviewText()}</p>
+        <p
+          className={`note-preview ${
+            note.locked ? "note-preview-locked" : " "
+          }`}
+        >
+          {getPreviewText()}
+        </p>
         <div className="note-meta">
           <span className="note-date">{formatDate(note.updatedAt)}</span>
         </div>

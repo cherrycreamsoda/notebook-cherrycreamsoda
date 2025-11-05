@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 import BaseEditor from "../BaseEditor";
 import RemindersEditor from "../RemindersEditor";
@@ -23,16 +23,20 @@ const RemindersEditorContent = ({
     };
   }, []);
 
+  // Only depend on selectedNote to initialize counts once
   useEffect(() => {
     if (selectedNote) {
       updateCounts(selectedNote.content || { reminders: [] });
     }
-  }, [selectedNote, updateCounts]);
+  }, [selectedNote]); // Depend on the entire object to ensure all changes are captured
 
-  const handleContentChange = (newContent) => {
-    updateCounts(newContent);
-    onContentChange(newContent);
-  };
+  const handleContentChange = useCallback(
+    (newContent) => {
+      // Don't call updateCounts here - let BaseEditor handle it via handleContentChange
+      onContentChange(newContent);
+    },
+    [onContentChange]
+  );
 
   return (
     <RemindersEditor

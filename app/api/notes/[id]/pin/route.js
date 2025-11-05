@@ -23,10 +23,17 @@ export async function PUT(req, context) {
       );
     }
 
+    if (note.locked) {
+      return NextResponse.json(
+        { success: false, error: "Cannot pin/unpin a locked note" },
+        { status: 403 }
+      );
+    }
+
     note.pinned = !note.pinned;
     await note.save();
 
-    return NextResponse.json({ success: true, data: note });
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

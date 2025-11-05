@@ -462,20 +462,29 @@
   outline-offset: -2px;
 }
 
-.note-type-icon {
+.note-type-stack {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 5px;
   width: 20px;
-  height: 20px;
   margin-right: 8px;
-  margin-top: 2px;
-  color: #6b7280;
   flex-shrink: 0;
 }
 
-.note-item.selected .note-type-icon {
+/* keep the type icon sized; remove right margin when inside stack */
+.note-type-stack .note-type-icon {
   color: #9ca3af;
+}
+
+/* ensure lock/unlock sits below the type icon with clean spacing */
+.note-type-lock-under {
+  margin-top: 2px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .note-content {
@@ -487,7 +496,7 @@
   font-size: 14px;
   font-weight: 600;
   color: #ffffff;
-  margin: 0 0 4px 0;
+  margin: 2px 0 4px 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -500,7 +509,7 @@
 .note-preview {
   font-size: 13px;
   color: #9ca3af;
-  margin: 0 0 6px 0;
+  margin: 2px 0 4px 0;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -508,8 +517,8 @@
   overflow: hidden;
 }
 
-.note-item.selected .note-preview {
-  color: rgba(255, 255, 255, 0.8);
+.note-preview-locked {
+  color: #dc2626;
 }
 
 .note-meta {
@@ -624,15 +633,12 @@
 .note-item.pinned .note-action-btn:not(.pin) {
   opacity: 0 !important;
   pointer-events: none !important;
-  transform: translateY(4px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
 /* on hover show other action buttons again */
 .note-item.pinned:hover .note-action-btn:not(.pin) {
   opacity: 1 !important;
   pointer-events: auto !important;
-  transform: translateY(0) !important;
 }
 
 /* ensure pin button is visible and interactive */
@@ -682,6 +688,72 @@
   }
 }
 
+@keyframes slideOutToLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes sidebarCollapseOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+/* Apply exit animation to the main expanded container */
+.sidebar-expanded.collapsing {
+  /* Keep layout width stable during the exit so content doesn't jump */
+  width: 280px;
+  min-width: 280px;
+  pointer-events: none; /* avoid interactions mid-exit */
+  animation: sidebarCollapseOut 0.4s ease-in forwards;
+}
+
+/* Animate key children out to the left while fading */
+.sidebar-expanded.collapsing .sidebar-header,
+.sidebar-expanded.collapsing .search-container,
+.sidebar-expanded.collapsing .sidebar-nav,
+.sidebar-expanded.collapsing .section-header,
+.sidebar-expanded.collapsing .notes-section {
+  animation: slideOutToLeft 0.35s ease-in forwards;
+}
+
+/* Optionally stagger the inner elements slightly for a smoother feel */
+.sidebar-expanded.collapsing .search-container {
+  animation-delay: 40ms;
+}
+.sidebar-expanded.collapsing .sidebar-nav {
+  animation-delay: 80ms;
+}
+.sidebar-expanded.collapsing .section-header {
+  animation-delay: 120ms;
+}
+.sidebar-expanded.collapsing .notes-section {
+  animation-delay: 160ms;
+}
+
+/* Per-note exit for a bit more polish, respecting existing CSS variable timing usage */
+.sidebar-expanded.collapsing .note-item {
+  animation: slideOutToLeft 0.3s ease-in forwards;
+  /* Use inverse of the entrance delay so groups feel cohesive on exit */
+  animation-delay: calc(var(--item-index, 0) * 10ms);
+}
+
+/* Mobile fullscreen overlay variant also needs exit animation */
+.sidebar.fullscreen-overlay.collapsing {
+  animation: sidebarCollapseOut 0.4s ease-in forwards;
+}
+
 .notes-list::-webkit-scrollbar {
   width: 6px;
 }
@@ -697,6 +769,12 @@
 
 .notes-list::-webkit-scrollbar-thumb:hover {
   background: #4b5563;
+}
+
+.fullscreen-mode .sidebar-collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
 }
 
 @media (max-width: 768px) {

@@ -5,23 +5,45 @@ import LoadingSpinner from "@components/common/LoadingSpinner";
 
 const RichTextEditorWrapper = dynamic(
   () => import("./wrappers/RichTextEditorWrapper"),
-  { ssr: false, loading: () => <LoadingSpinner size={20} /> }
+  {
+    ssr: false,
+    loading: () => <LoadingSpinner size={20} />,
+  }
 );
 const ChecklistEditorWrapper = dynamic(
   () => import("./wrappers/ChecklistEditorWrapper"),
-  { ssr: false, loading: () => <LoadingSpinner size={20} /> }
+  {
+    ssr: false,
+    loading: () => <LoadingSpinner size={20} />,
+  }
 );
 const RemindersEditorWrapper = dynamic(
   () => import("./wrappers/RemindersEditorWrapper"),
-  { ssr: false, loading: () => <LoadingSpinner size={20} /> }
+  {
+    ssr: false,
+    loading: () => <LoadingSpinner size={20} />,
+  }
 );
 const DatasheetEditorWrapper = dynamic(
   () => import("./wrappers/DatasheetEditorWrapper"),
-  { ssr: false, loading: () => <LoadingSpinner size={20} /> }
+  {
+    ssr: false,
+    loading: () => <LoadingSpinner size={20} />,
+  }
 );
 import PlainTextEditor from "./PlainTextEditor";
 
-const EditorContainer = ({ selectedNote, onUpdateNote }) => {
+const EditorContainer = ({
+  selectedNote,
+  onUpdateNote,
+  sidebarCollapsed,
+  onToggleSidebar,
+  isFullscreen,
+  onToggleFullscreen,
+  handleCloseNote,
+  headerHidden,
+  onToggleHeaderHide,
+}) => {
   if (!selectedNote) {
     return null;
   }
@@ -30,6 +52,13 @@ const EditorContainer = ({ selectedNote, onUpdateNote }) => {
   const commonProps = {
     selectedNote,
     onUpdateNote,
+    sidebarCollapsed,
+    onToggleSidebar,
+    isFullscreen,
+    onToggleFullscreen,
+    handleCloseNote,
+    headerHidden,
+    onToggleHeaderHide,
   };
 
   switch (noteType) {

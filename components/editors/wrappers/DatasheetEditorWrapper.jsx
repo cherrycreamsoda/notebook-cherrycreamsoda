@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 import BaseEditor from "../BaseEditor";
 import DatasheetEditor from "../DatasheetEditor";
@@ -16,16 +16,20 @@ const DatasheetEditorContent = ({
     };
   }, []);
 
+  // Only depend on selectedNote ID to initialize counts once
   useEffect(() => {
     if (selectedNote) {
       updateCounts(selectedNote.content || { columns: [], rows: [] });
     }
-  }, [selectedNote, updateCounts]);
+  }, [selectedNote]); // Depend on the entire object to ensure all changes are captured
 
-  const handleContentChange = (newContent) => {
-    updateCounts(newContent);
-    onContentChange(newContent);
-  };
+  const handleContentChange = useCallback(
+    (newContent) => {
+      // Don't call updateCounts here - let BaseEditor handle it via handleContentChange
+      onContentChange(newContent);
+    },
+    [onContentChange]
+  );
 
   return (
     <DatasheetEditor

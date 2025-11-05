@@ -1,9 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { useRef, useCallback } from "react";
 
 export const useDebounce = (callback, delay) => {
   const timeoutRef = useRef(null);
+  const callbackRef = useRef(callback);
+
+  // Update callback ref when callback changes
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
 
   const clearTimer = () => {
     if (timeoutRef.current) {
@@ -16,11 +24,11 @@ export const useDebounce = (callback, delay) => {
     (...args) => {
       clearTimer();
       timeoutRef.current = setTimeout(() => {
-        callback(...args);
+        callbackRef.current(...args);
         timeoutRef.current = null;
       }, delay);
     },
-    [callback, delay]
+    [delay]
   );
 
   debouncedCallback.cancel = () => {

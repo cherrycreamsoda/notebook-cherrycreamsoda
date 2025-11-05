@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import "@styles/ChecklistEditor.css";
 import { Plus, X, GripVertical } from "lucide-react";
@@ -27,11 +27,15 @@ const ChecklistEditor = ({ content, onContentChange }) => {
     }
   }, [content]);
 
-  useEffect(() => {
+  const memoizedOnContentChange = useCallback(() => {
     if (items.length > 0) {
       onContentChange({ items });
     }
   }, [items, onContentChange]);
+
+  useEffect(() => {
+    memoizedOnContentChange();
+  }, [items]);
 
   const addItem = (index = -1) => {
     const newItem = { id: generateId(), text: "", checked: false };

@@ -7,6 +7,10 @@ export const useNotesUpdater = ({
   setLastCreatedNote,
   updateNoteInArrays,
   execute,
+  allNotes,
+  notes,
+  setCreateError,
+  selectedNote,
 }) => {
   const updateNote = async (id, updates) => {
     return execute(async () => {
@@ -23,9 +27,25 @@ export const useNotesUpdater = ({
 
   const togglePin = async (id) => {
     return execute(async () => {
-      const updatedNote = await notesAPI.togglePin(id);
-      updateNoteInArrays(id, updatedNote);
-      return updatedNote;
+      const currentSelected = selectedNote?._id === id ? selectedNote : null;
+      const currentArray =
+        (allNotes && allNotes.find((n) => n._id === id)) ||
+        (notes && notes.find((n) => n._id === id));
+      const current = currentSelected || currentArray;
+
+      const effectiveLocked =
+        currentSelected != null ? !!currentSelected.locked : !!current?.locked;
+
+      if (effectiveLocked) {
+        setCreateError?.("Unlock the note before pinning.");
+        setTimeout(() => setCreateError?.(null), 3000);
+        return { blocked: true, note: current };
+      }
+
+      await notesAPI.togglePin(id);
+      const fullNote = current ? { ...current, pinned: !current.pinned } : null;
+      updateNoteInArrays(id, fullNote);
+      return fullNote;
     }, "Failed to toggle pin");
   };
 

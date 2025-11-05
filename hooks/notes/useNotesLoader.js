@@ -85,7 +85,6 @@ export const useNotesLoader = ({
         }
       }
 
-      // Check if note exists in allNotes array (fallback)
       const existingNote = allNotes.find((note) => note._id === noteId);
       if (existingNote) {
         console.log("Found note in allNotes array, caching it");
@@ -99,7 +98,6 @@ export const useNotesLoader = ({
         console.log("Fetching note from server:", noteId);
         const serverNote = await notesAPI.fetchNoteById(noteId);
         if (serverNote && serverNote._id) {
-          // Add to allNotes array
           setAllNotes((prev) => [serverNote, ...prev]);
 
           if (cache) {

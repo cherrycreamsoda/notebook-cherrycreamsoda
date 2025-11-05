@@ -193,6 +193,16 @@
   left: 0;
 }
 
+@media (max-width: 768px) {
+  .app.fullscreen-mode .sidebar-expanded {
+    width: 100% !important;
+    position: absolute;
+  }
+  .app.fullscreen-mode .sidebar-collapsed {
+    transform: translateX(-100%);
+  }
+}
+
 .coming-soon-tooltip {
   position: absolute;
   top: 50px;

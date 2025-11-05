@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
-
+import { useEffect, useRef, useState, useCallback } from "react";
 import BaseEditor from "./BaseEditor";
+import { RICH_TEXT_PLACEHOLDER } from "@lib/constants/richTextEditorConstants";
 
 const PlainTextEditorContent = ({
   selectedNote,
@@ -11,8 +11,21 @@ const PlainTextEditorContent = ({
   const plainTextRef = useRef(null);
   const [lastNoteId, setLastNoteId] = useState(null);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const handleKeyDown = useCallback((e) => {
+    if (e.key === "Enter" && plainTextRef.current) {
+      setTimeout(() => {
+        if (plainTextRef.current) {
+          const textarea = plainTextRef.current;
+          // Get current cursor position and scroll to show the next line
+          const scrollHeight = textarea.scrollHeight;
+          const clientHeight = textarea.clientHeight;
+          textarea.scrollTop = Math.max(scrollHeight - clientHeight, 0);
+        }
+      }, 0);
+    }
+
     if (e.key === "Escape") {
       e.preventDefault();
       plainTextRef.current?.blur();
@@ -26,9 +39,7 @@ const PlainTextEditorContent = ({
 
   useEffect(() => {
     window.editorFocusHandler = () => {
-      if (plainTextRef.current) {
-        plainTextRef.current.focus();
-      }
+      plainTextRef.current?.focus();
     };
     return () => {
       window.editorFocusHandler = null;
@@ -53,7 +64,29 @@ const PlainTextEditorContent = ({
     }
   }, [selectedNote, updateCounts, lastNoteId]);
 
-  const handleContentChange = (e) => {
+  useEffect(() => {
+    const textarea = plainTextRef.current;
+
+    const handleScroll = () => {
+      if (textarea.scrollTop > 0) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    if (textarea) {
+      textarea.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (textarea) {
+        textarea.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
+  const handleContentChange = () => {
     if (!plainTextRef.current) return;
     if (!hasStartedTyping) setHasStartedTyping(true);
 
@@ -67,8 +100,8 @@ const PlainTextEditorContent = ({
       ref={plainTextRef}
       onChange={handleContentChange}
       onKeyDown={handleKeyDown}
-      className="note-content-textarea"
-      placeholder="Start writing your note..."
+      className={`note-content-textarea ${isScrolled ? "scrolled" : ""}`}
+      placeholder={RICH_TEXT_PLACEHOLDER}
     />
   );
 };
@@ -82,7 +115,7 @@ const PlainTextEditor = (props) => {
       showStatusBar={true}
       editorClassName=""
     >
-      <PlainTextEditorContent />
+      <PlainTextEditorContent {...props} />
     </BaseEditor>
   );
 };

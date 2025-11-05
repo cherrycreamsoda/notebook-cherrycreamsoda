@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import { notesAPI } from "@lib/services/api"; //
 
 import LoadingSpinner from "@components/common/LoadingSpinner";
 import EditorContainer from "@components/editors/EditorContainer";
-
+import PasscodeOverlay from "@components/PasscodeOverlay";
 import { useAsyncAction } from "@hooks/useAsyncAction";
 
 import "@styles/MainContent.css";
@@ -15,6 +16,8 @@ import {
   Maximize,
   Minimize,
   X,
+  Lock,
+  Unlock,
 } from "lucide-react";
 
 const MainContent = ({
@@ -28,19 +31,59 @@ const MainContent = ({
   isFullscreen,
   onToggleFullscreen,
   headerBackgroundEnabled,
+  onSetPasskey,
+  onLockNote,
+  onUnlockNote,
 }) => {
   const { loading: pinLoading, execute: executePin } = useAsyncAction();
   const { loading: deleteLoading, execute: executeDelete } = useAsyncAction();
+  const { loading: lockLoading, execute: executeLock } = useAsyncAction();
   const headerRef = useRef(null);
+  const mainContentRef = useRef(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showPasscodeSetupOverlay, setShowPasscodeSetupOverlay] =
+    useState(false);
+  const [passcodeSetupMessage, setPasscodeSetupMessage] = useState("");
+  const [passcodeSetupError, setPasscodeSetupError] = useState(false);
+  const [passcodeOverlayMode, setPasscodeOverlayMode] = useState("setup");
+  const [selectedHasPasskey, setSelectedHasPasskey] = useState(undefined); //
+  const [headerHidden, setHeaderHidden] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const run = async () => {
+      if (!selectedNote?._id) {
+        setSelectedHasPasskey(undefined);
+        return;
+      }
+      try {
+        // If the note list already supplied hasPasskey from the server, use it and skip an extra request
+        if (selectedNote.hasPasskey !== undefined) {
+          if (!active) return;
+          setSelectedHasPasskey(!!selectedNote.hasPasskey);
+        } else {
+          const flag = await notesAPI.hasPasskey(selectedNote._id);
+          if (!active) return;
+          setSelectedHasPasskey(flag);
+        }
+      } catch {
+        if (!active) return;
+        // fallback handled below via legacy field
+        setSelectedHasPasskey(undefined);
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
+  }, [selectedNote?._id, selectedNote?.hasPasskey]);
 
   useEffect(() => {
     if (headerBackgroundEnabled !== undefined) {
       setIsTransitioning(true);
       const timer = setTimeout(() => {
         setIsTransitioning(false);
-      }, 800); // Match CSS transition duration
-
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [headerBackgroundEnabled]);
@@ -62,6 +105,84 @@ const MainContent = ({
     );
   };
 
+  const handleToggleLock = async () => {
+    if (!selectedNote) return;
+
+    const isLocked = !!selectedNote.locked;
+    const hasPasskey = selectedHasPasskey === true; // only API bool
+
+    if (!hasPasskey) {
+      // Need to set passkey first
+      setPasscodeOverlayMode("setup");
+      setShowPasscodeSetupOverlay(true);
+      setPasscodeSetupMessage("");
+      setPasscodeSetupError(false);
+      return;
+    }
+
+    if (!isLocked) {
+      // Lock immediately
+      executeLock(async () => {
+        const updated = await onLockNote(selectedNote._id);
+        onUpdateNote(updated);
+      }, "Failed to lock note");
+    } else {
+      // Unlock requires passcode
+      setPasscodeOverlayMode("unlock");
+      setShowPasscodeSetupOverlay(true);
+      setPasscodeSetupMessage("");
+      setPasscodeSetupError(false);
+    }
+  };
+
+  const handlePasscodeSetup = async (enteredPasscode) => {
+    setPasscodeSetupMessage("");
+    setPasscodeSetupError(false);
+
+    try {
+      if (passcodeOverlayMode === "setup") {
+        const updatedAfterSet = await onSetPasskey(
+          selectedNote._id,
+          enteredPasscode
+        );
+        // Optionally lock right after setting passkey to preserve current UX
+        const updated = await onLockNote(updatedAfterSet._id);
+        setPasscodeSetupMessage("Your password is set");
+        setPasscodeSetupError(false);
+        setTimeout(() => {
+          setShowPasscodeSetupOverlay(false);
+          onUpdateNote(updated);
+        }, 1500);
+      } else {
+        const updated = await onUnlockNote(selectedNote._id, enteredPasscode);
+        onUpdateNote(updated); // flip locked=false now so LockedEditorOverlay unmounts
+        setShowPasscodeSetupOverlay(false); // close passcode overlay immediately
+
+        // Fetch a fresh copy from server to ensure the content area shows the unlocked note without any stale overlays/data
+        try {
+          const fresh = await notesAPI.fetchNoteById(selectedNote._id);
+          if (fresh && fresh._id) {
+            // Update the visible note immediately; EditorContainer re-mounts due to key depending on locked state
+            onUpdateNote(fresh);
+            // also move selection explicitly to the fresh note if needed
+            setSelectedNote?.(fresh);
+          }
+        } catch (e) {
+          // non-fatal: if fetch fails, the optimistic updated value already removed the overlay
+        }
+      }
+    } catch (error) {
+      setPasscodeSetupMessage("Try Again");
+      setPasscodeSetupError(true);
+    }
+  };
+
+  const handleDismissPasscodeSetupOverlay = () => {
+    setShowPasscodeSetupOverlay(false);
+    setPasscodeSetupMessage("");
+    setPasscodeSetupError(false);
+  };
+
   const getHeaderClasses = () => {
     let classes = "main-header";
 
@@ -78,12 +199,30 @@ const MainContent = ({
     return classes;
   };
 
+  const handleToggleHeaderHide = async () => {
+    if (!headerHidden && !isFullscreen) {
+      // Entering fullscreen + hiding header
+      await onToggleFullscreen();
+      // Small delay to ensure fullscreen transition completes
+      setTimeout(() => {
+        setHeaderHidden(true);
+      }, 300);
+    } else {
+      // Exiting header hide (and fullscreen)
+      setHeaderHidden(false);
+      await onToggleFullscreen();
+    }
+  };
+
   if (!selectedNote) {
     return (
       <div
         className={`main-content ${
           sidebarCollapsed ? "sidebar-collapsed" : ""
-        } ${isFullscreen ? "fullscreen" : ""}`.trim()}
+        } ${isFullscreen ? "fullscreen" : ""} ${
+          headerHidden ? "header-hidden" : ""
+        }`.trim()}
+        ref={mainContentRef}
       >
         <MainHeader
           ref={headerRef}
@@ -92,6 +231,7 @@ const MainContent = ({
           onToggleSidebar={onToggleSidebar}
           isFullscreen={isFullscreen}
           onToggleFullscreen={onToggleFullscreen}
+          headerHidden={headerHidden}
         />
         <div className="main-content-inner">
           <div className="empty-main">
@@ -106,7 +246,8 @@ const MainContent = ({
     <div
       className={`main-content ${sidebarCollapsed ? "sidebar-collapsed" : ""} ${
         isFullscreen ? "fullscreen" : ""
-      }`.trim()}
+      } ${headerHidden ? "header-hidden" : ""}`.trim()}
+      ref={mainContentRef}
     >
       <MainHeader
         ref={headerRef}
@@ -121,14 +262,35 @@ const MainContent = ({
         onDelete={handleDelete}
         pinLoading={pinLoading}
         deleteLoading={deleteLoading}
+        onToggleLock={handleToggleLock}
+        lockLoading={lockLoading}
+        hasPasskey={selectedHasPasskey === true}
+        headerHidden={headerHidden}
       />
 
       <div className="main-content-inner">
         <EditorContainer
+          key={`${selectedNote._id}:${selectedNote.locked ? "L" : "U"}`}
           selectedNote={selectedNote}
           onUpdateNote={onUpdateNote}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={onToggleSidebar}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={onToggleFullscreen}
+          handleCloseNote={handleCloseNote}
+          headerHidden={headerHidden}
+          onToggleHeaderHide={handleToggleHeaderHide}
         />
       </div>
+
+      {showPasscodeSetupOverlay && (
+        <PasscodeOverlay
+          onPasscodeEntered={handlePasscodeSetup}
+          onDismiss={handleDismissPasscodeSetupOverlay}
+          message={passcodeSetupMessage}
+          isError={passcodeSetupError}
+        />
+      )}
     </div>
   );
 };
@@ -147,10 +309,17 @@ const MainHeader = React.forwardRef(
       onDelete,
       pinLoading,
       deleteLoading,
+      onToggleLock,
+      lockLoading,
+      hasPasskey,
+      headerHidden,
     },
     ref
   ) => (
-    <div className={className} ref={ref}>
+    <div
+      className={`${className} ${headerHidden ? "header-collapsed" : ""}`}
+      ref={ref}
+    >
       <div className="header-left-actions">
         <button
           className={`note-header-btn ${sidebarCollapsed ? "" : "active"}`}
@@ -174,13 +343,45 @@ const MainHeader = React.forwardRef(
 
       {selectedNote && (
         <div className="note-header-actions">
+          {hasPasskey !== true ? (
+            <button
+              className="note-header-btn lock-btn"
+              onClick={onToggleLock}
+              title="Lock note"
+              disabled={lockLoading}
+            >
+              {lockLoading ? (
+                <LoadingSpinner size={14} inline={true} showMessage={false} />
+              ) : (
+                <Lock size={14} />
+              )}
+            </button>
+          ) : (
+            <button
+              className={`note-header-btn lock-btn ${
+                selectedNote.locked ? "active" : ""
+              }`}
+              onClick={onToggleLock}
+              title={selectedNote.locked ? "Unlock note" : "Lock note"}
+              disabled={lockLoading}
+            >
+              {lockLoading ? (
+                <LoadingSpinner size={14} inline={true} showMessage={false} />
+              ) : selectedNote.locked ? (
+                <Lock size={14} />
+              ) : (
+                <Unlock size={14} />
+              )}
+            </button>
+          )}
+
           <button
             className={`note-header-btn pin-btn ${
               selectedNote.pinned ? "active" : ""
             }`}
             onClick={onTogglePin}
             title={selectedNote.pinned ? "Unpin note" : "Pin note"}
-            disabled={pinLoading}
+            disabled={pinLoading || selectedNote.locked}
           >
             {pinLoading ? (
               <LoadingSpinner size={14} inline={true} showMessage={false} />
@@ -193,7 +394,7 @@ const MainHeader = React.forwardRef(
             className="note-header-btn delete-btn"
             onClick={onDelete}
             title="Delete note"
-            disabled={deleteLoading}
+            disabled={deleteLoading || selectedNote.locked}
           >
             {deleteLoading ? (
               <LoadingSpinner size={14} inline={true} showMessage={false} />
@@ -203,7 +404,7 @@ const MainHeader = React.forwardRef(
           </button>
 
           <button
-            className="note-header-btn"
+            className="note-header-btn close-btn"
             onClick={handleCloseNote}
             title="Close Note"
           >

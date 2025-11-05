@@ -7,6 +7,7 @@ import { useNotesCreator } from "./notes/useNotesCreator";
 import { useNotesUpdater } from "./notes/useNotesUpdater";
 import { useNotesDeleter } from "./notes/useNotesDeleter";
 import { useNotesComputed } from "./notes/useNotesComputed";
+import { useNotesLocker } from "./notes/useNotesLocker";
 
 export const useNotes = () => {
   const { loading, error, execute, clearError } = useAsyncAction();
@@ -25,7 +26,7 @@ export const useNotes = () => {
     updateNoteInArrays,
     removeNoteFromArrays,
     selectNote,
-    cache, // Added cache from state
+    cache,
   } = useNotesState();
 
   const { loadNotes, fetchNoteById } = useNotesLoader({
@@ -35,7 +36,7 @@ export const useNotes = () => {
     setAllNotes,
     setSelectedNote,
     execute,
-    cache, // Pass cache to loader
+    cache,
   });
 
   const { createNote } = useNotesCreator({
@@ -53,6 +54,10 @@ export const useNotes = () => {
     setLastCreatedNote,
     updateNoteInArrays,
     execute,
+    allNotes,
+    notes,
+    setCreateError,
+    selectedNote, // pass selectedNote so updater can use the freshest lock state
   });
 
   const { deleteNote, permanentDelete, restoreNote, clearAllDeleted } =
@@ -70,6 +75,15 @@ export const useNotes = () => {
       execute,
     });
 
+  const { setPasskey, lockNote, unlockNote } = useNotesLocker({
+    allNotes,
+    selectedNote,
+    setAllNotes,
+    setSelectedNote,
+    updateNoteInArrays,
+    execute,
+  });
+
   const { counts } = useNotesComputed({ allNotes });
 
   const handleSelectNote = async (note) => {
@@ -80,7 +94,7 @@ export const useNotes = () => {
     notes,
     allNotes,
     selectedNote,
-    setSelectedNote: handleSelectNote, // Use enhanced selection function
+    setSelectedNote: handleSelectNote,
     counts,
     loading,
     error,
@@ -89,6 +103,7 @@ export const useNotes = () => {
       clearError();
       setCreateError(null);
     },
+    setCreateError, // expose setCreateError so pages/components can raise UI errors (e.g., DB connection failures)
     loadNotes,
     fetchNoteById,
     createNote,
@@ -99,5 +114,8 @@ export const useNotes = () => {
     togglePin,
     clearAllDeleted,
     cache,
+    setPasskey,
+    lockNote,
+    unlockNote,
   };
 };

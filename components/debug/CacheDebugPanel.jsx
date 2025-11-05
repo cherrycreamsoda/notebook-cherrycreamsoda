@@ -15,7 +15,6 @@ const CacheDebugPanel = ({ cache }) => {
       }
     };
 
-    // Update stats every second when panel is visible
     let interval;
     if (isVisible) {
       updateStats();

@@ -15,18 +15,41 @@ export async function PUT(req, context) {
   }
 
   try {
-    const note = await Note.findByIdAndUpdate(
-      id,
-      { deleted: false },
-      { new: true }
-    );
+    const note = await Note.findById(id);
     if (!note) {
       return NextResponse.json(
         { success: false, error: "Note not found" },
         { status: 404 }
       );
     }
-    return NextResponse.json({ success: true, data: note });
+
+    if (note.locked) {
+      return NextResponse.json(
+        { success: false, error: "Cannot restore a locked note" },
+        { status: 403 }
+      );
+    }
+
+    if (!note.deleted) {
+      return NextResponse.json(
+        { success: false, error: "Cannot restore a note that is not deleted" },
+        { status: 400 }
+      );
+    }
+
+    const updatedNote = await Note.findByIdAndUpdate(
+      id,
+      { deleted: false },
+      { new: true }
+    );
+    if (!updatedNote) {
+      return NextResponse.json(
+        { success: false, error: "Note not found after update" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },

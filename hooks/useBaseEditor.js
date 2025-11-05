@@ -24,23 +24,22 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
   const [shouldFocusTitle, setShouldFocusTitle] = useState(false);
   const [pendingUpdates, setPendingUpdates] = useState({});
   const [isUserEditing, setIsUserEditing] = useState(false);
+  const [lastEditedField, setLastEditedField] = useState(null);
 
   const titleInputRef = useRef(null);
   const noteType = selectedNote?.type || NOTE_TYPES.RICH_TEXT;
 
-  const updateCounts = useCallback((content) => {
-    const plainText = extractPlainText(content);
-    setWordCount(plainText.trim().split(/\s+/).length || 0);
-    setCharCount(plainText.length);
-  }, []);
-
-  const { debouncedCallback: debouncedUpdate, cleanup } = useDebounce(
+  const handleDebouncedUpdateCallback = useCallback(
     async (field, value) => {
       if (!selectedNote) return;
 
-      // Collect any pending updates
-      const updates = { ...pendingUpdates, [field]: value };
-      setPendingUpdates({});
+      const updates = { [field]: value };
+
+      if (field === NOTE_FIELDS.CONTENT) {
+        updates[NOTE_FIELDS.RAW_CONTENT] = extractPlainText(value);
+        // Always include the current title when content is saved
+        updates[NOTE_FIELDS.TITLE] = title;
+      }
 
       setIsSaving(true);
       try {
@@ -50,36 +49,69 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
         setTimeout(() => setIsUserEditing(false), 100);
       }
     },
+    [selectedNote, onUpdateNote, title]
+  );
+
+  const { debouncedCallback: debouncedUpdate, cleanup } = useDebounce(
+    handleDebouncedUpdateCallback,
     1500
   );
+
+  const updateCounts = useCallback((content) => {
+    const plainText = extractPlainText(content);
+    const words =
+      plainText
+        .trim()
+        .split(/\s+/)
+        .filter((w) => w.length > 0).length || 0;
+    const chars = plainText.length;
+    return { words, chars };
+  }, []);
 
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
     setIsUserEditing(true);
+    setLastEditedField(NOTE_FIELDS.TITLE);
     setPendingUpdates((prev) => ({ ...prev, [NOTE_FIELDS.TITLE]: newTitle }));
     debouncedUpdate(NOTE_FIELDS.TITLE, newTitle);
   };
 
   const handleContentKeyDown = (e, content) => {
     if (e.key === "Enter") {
-      debouncedUpdate.cancel?.(); // cancel the debounce timer
-      const updates = { ...pendingUpdates, [NOTE_FIELDS.CONTENT]: content };
+      debouncedUpdate.cancel?.();
+      const updates = {
+        [NOTE_FIELDS.CONTENT]: content,
+        [NOTE_FIELDS.RAW_CONTENT]: extractPlainText(content),
+        [NOTE_FIELDS.TITLE]: title,
+      };
       setPendingUpdates({});
-      handleUpdate(selectedNote._id, updates); // force immediate save with all pending updates
+      handleUpdate(selectedNote._id, updates);
     }
   };
 
   const handleContentChange = useCallback(
     (newContent) => {
-      updateCounts(newContent);
+      // Calculate counts directly
+      const plainText = extractPlainText(newContent);
+      const words =
+        plainText
+          .trim()
+          .split(/\s+/)
+          .filter((w) => w.length > 0).length || 0;
+      const chars = plainText.length;
+
+      setWordCount(words);
+      setCharCount(chars);
+
       setPendingUpdates((prev) => ({
         ...prev,
         [NOTE_FIELDS.CONTENT]: newContent,
       }));
+      setLastEditedField(NOTE_FIELDS.CONTENT);
       debouncedUpdate(NOTE_FIELDS.CONTENT, newContent);
     },
-    [updateCounts, debouncedUpdate]
+    [debouncedUpdate]
   );
 
   const handleUpdate = async (noteId, updates) => {
@@ -137,6 +169,7 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
     await handleUpdate(selectedNote._id, {
       [NOTE_FIELDS.TYPE]: newType,
       [NOTE_FIELDS.CONTENT]: newContent,
+      [NOTE_FIELDS.RAW_CONTENT]: extractPlainText(newContent),
     });
 
     setShouldBlinkDropdown(true);
@@ -186,10 +219,7 @@ export const useBaseEditor = ({ selectedNote, onUpdateNote }) => {
         setTitle(selectedNote.title || "");
       }
 
-      if (
-        selectedNote.title === "New Note" &&
-        isContentEmpty(selectedNote.content)
-      ) {
+      if (selectedNote.title === "" && isContentEmpty(selectedNote.content)) {
         setShouldFocusTitle(true);
       }
     }

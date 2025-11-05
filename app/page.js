@@ -6,12 +6,15 @@ import TopBar from "@components/layout/TopBar";
 import Sidebar from "@components/layout/Sidebar";
 import MainContent from "@components/layout/MainContent";
 import fullscreenStyles from "../styles/Fullscreen.module.css";
-import LoadingSpinner from "@components/common/LoadingSpinner";
 import ErrorMessage from "@components/common/ErrorMessage";
 import FloatingActionButton from "@components/widgets/FloatingActionButton";
+import HazardOverlay from "@components/common/HazardOverlay";
+import LiquidLoadingOverlay from "@components/common/LiquidLoadingOverlay";
+import useLoadingProgress from "@hooks/useLoadingProgress";
 
 import { useNotes } from "@hooks/useNotes";
 import { checkBackendHealth } from "@lib/services/api";
+import DonateHeart from "@components/widgets/DonateHeart";
 
 function PageContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,9 +26,16 @@ function PageContent() {
   const [isTransitioningFullscreen, setIsTransitioningFullscreen] =
     useState(false);
   const [headerBackgroundEnabled, setHeaderBackgroundEnabled] = useState(false);
+  const [appContentReady, setAppContentReady] = useState(false);
+
   const topBarFullscreenClass = isFullscreen
     ? fullscreenStyles.fullscreenTopBar
     : "";
+  const [isSmallScreen, setIsSmallScreen] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false
+  );
+
+  const { progress } = useLoadingProgress(initialLoading);
 
   const {
     notes,
@@ -35,6 +45,7 @@ function PageContent() {
     error,
     createError,
     clearError,
+    setCreateError,
     loadNotes,
     createNote,
     updateNote,
@@ -44,6 +55,9 @@ function PageContent() {
     togglePin,
     clearAllDeleted,
     cache,
+    setPasskey,
+    lockNote,
+    unlockNote,
   } = useNotes();
 
   useEffect(() => {
@@ -53,20 +67,23 @@ function PageContent() {
         setBackendConnected(isConnected);
 
         if (!isConnected) {
-          createError(
+          setCreateError(
             "Database connection failed. Please check your server connection and try again."
           );
         }
       } catch (error) {
         console.error("Backend health check failed:", error);
-        createError("Unable to connect to the database. Server may be down.");
+        setCreateError(
+          "Unable to connect to the database. Server may be down."
+        );
         setBackendConnected(false);
       } finally {
+        setAppContentReady(true);
         setInitialLoading(false);
       }
     };
     checkConnection();
-  }, [createError]);
+  }, [setCreateError]);
 
   useEffect(() => {
     if (backendConnected) {
@@ -79,6 +96,14 @@ function PageContent() {
       setSidebarCollapsed(true);
     }
   }, [isFullscreen]);
+
+  useEffect(() => {
+    const onResize = () => {
+      setIsSmallScreen(window.innerWidth <= 768);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const handleCreateNote = useCallback(
     async (noteData = {}) => {
@@ -145,40 +170,74 @@ function PageContent() {
     setHeaderBackgroundEnabled(!headerBackgroundEnabled);
   };
 
-  if (initialLoading) {
-    return (
-      <div className={styles.app}>
-        <div className={styles["app-loading"]}>
-          <LoadingSpinner liquidAnimation={true} />
-        </div>
-      </div>
-    );
-  }
+  const handleApplyOrUpdateNote = useCallback(
+    async (arg1, arg2) => {
+      if (arg2 === undefined && arg1 && typeof arg1 === "object" && arg1._id) {
+        setSelectedNote(arg1);
 
-  if (!backendConnected && !initialLoading) {
-    return (
-      <div className={styles.app}>
+        await loadNotes(currentView, searchTerm);
+        return arg1;
+      }
+
+      return updateNote(arg1, arg2);
+    },
+    [setSelectedNote, loadNotes, currentView, searchTerm, updateNote]
+  );
+
+  const handleSetPasskey = useCallback(
+    async (id, pass) => {
+      const updated = await setPasskey(id, pass);
+      await loadNotes(currentView, searchTerm);
+      return updated;
+    },
+    [setPasskey, loadNotes, currentView, searchTerm]
+  );
+
+  const handleLockNote = useCallback(
+    async (id) => {
+      const updated = await lockNote(id);
+      await loadNotes(currentView, searchTerm);
+      return updated;
+    },
+    [lockNote, loadNotes, currentView, searchTerm]
+  );
+
+  const handleUnlockNote = useCallback(
+    async (id, pass) => {
+      const updated = await unlockNote(id, pass);
+      await loadNotes(currentView, searchTerm);
+      return updated;
+    },
+    [unlockNote, loadNotes, currentView, searchTerm]
+  );
+
+  const renderAppContent = () => {
+    if (!backendConnected && appContentReady) {
+      return (
         <div className={styles["app-loading"]}>
+          <HazardOverlay />
           <ErrorMessage
             message={error || createError || "Database connection failed"}
             onDismiss={clearError}
             onRetry={() => {
               setInitialLoading(true);
+              setAppContentReady(false);
               const checkConnection = async () => {
                 try {
                   const isConnected = await checkBackendHealth();
                   setBackendConnected(isConnected);
                   if (!isConnected) {
-                    createError(
+                    setCreateError(
                       "Database connection failed. Please check your server connection and try again."
                     );
                   }
                 } catch (error) {
-                  createError(
+                  setCreateError(
                     "Unable to connect to the database. Server may be down."
                   );
                   setBackendConnected(false);
                 } finally {
+                  setAppContentReady(true);
                   setInitialLoading(false);
                 }
               };
@@ -186,73 +245,98 @@ function PageContent() {
             }}
           />
         </div>
-      </div>
-    );
-  }
+      );
+    }
+
+    if (backendConnected && appContentReady) {
+      return (
+        <>
+          <TopBar
+            headerBackgroundEnabled={headerBackgroundEnabled}
+            onToggleHeaderBackground={handleToggleHeaderBackground}
+            fullscreenClass={topBarFullscreenClass}
+          />
+
+          {(error || createError) && (
+            <ErrorMessage
+              message={error || createError}
+              onDismiss={clearError}
+              onRetry={() => loadNotes(currentView, searchTerm)}
+            />
+          )}
+
+          <Sidebar
+            notes={notes}
+            selectedNote={selectedNote}
+            onSelectNote={setSelectedNote}
+            onCreateNote={handleCreateNote}
+            onDeleteNote={handleDeleteNote}
+            onPermanentDelete={permanentDelete}
+            onRestoreNote={handleRestoreNote}
+            onTogglePin={handleTogglePin}
+            onClearAllDeleted={handleClearAllDeleted}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            currentView={currentView}
+            onViewChange={handleViewChange}
+            counts={counts}
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={handleSidebarToggle}
+            isFullscreen={isFullscreen}
+            expandedFullscreenClass={
+              isFullscreen && isSmallScreen
+                ? fullscreenStyles.fullscreenSidebarExpanded
+                : ""
+            }
+            collapsedFullscreenClass={
+              isFullscreen && isSmallScreen
+                ? fullscreenStyles.fullscreenSidebarCollapsed
+                : ""
+            }
+          />
+
+          <MainContent
+            selectedNote={selectedNote}
+            setSelectedNote={setSelectedNote}
+            onUpdateNote={handleApplyOrUpdateNote}
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={handleSidebarToggle}
+            onTogglePin={handleTogglePin}
+            onDeleteNote={handleDeleteNote}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={toggleFullscreen}
+            isTransitioningFullscreen={isTransitioningFullscreen}
+            headerBackgroundEnabled={headerBackgroundEnabled}
+            onSetPasskey={handleSetPasskey}
+            onLockNote={handleLockNote}
+            onUnlockNote={handleUnlockNote}
+          />
+
+          <FloatingActionButton
+            onCreateNote={handleCreateNote}
+            selectedNote={selectedNote}
+            sidebarCollapsed={sidebarCollapsed}
+          />
+
+          <DonateHeart />
+        </>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <div className={`${styles.app} ${isFullscreen ? "fullscreen-mode" : ""}`}>
-      {/* <CacheDebugPanel cache={cache} /> */}
-
-      <TopBar
-        headerBackgroundEnabled={headerBackgroundEnabled}
-        onToggleHeaderBackground={handleToggleHeaderBackground}
-        fullscreenClass={topBarFullscreenClass}
+      <LiquidLoadingOverlay
+        isLoading={initialLoading}
+        progress={progress}
+        onLoadingComplete={() => {
+          console.log("[v0] Liquid overlay fade-out complete");
+        }}
       />
 
-      {(error || createError) && (
-        <ErrorMessage
-          message={error || createError}
-          onDismiss={clearError}
-          onRetry={() => loadNotes(currentView, searchTerm)}
-        />
-      )}
-
-      <Sidebar
-        notes={notes}
-        selectedNote={selectedNote}
-        onSelectNote={setSelectedNote}
-        onCreateNote={handleCreateNote}
-        onDeleteNote={handleDeleteNote}
-        onPermanentDelete={permanentDelete}
-        onRestoreNote={handleRestoreNote}
-        onTogglePin={handleTogglePin}
-        onClearAllDeleted={handleClearAllDeleted}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        currentView={currentView}
-        onViewChange={handleViewChange}
-        counts={counts}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={handleSidebarToggle}
-        isFullscreen={isFullscreen}
-        expandedFullscreenClass={
-          isFullscreen ? fullscreenStyles.fullscreenSidebarExpanded : ""
-        }
-        collapsedFullscreenClass={
-          isFullscreen ? fullscreenStyles.fullscreenSidebarCollapsed : ""
-        }
-      />
-
-      <MainContent
-        selectedNote={selectedNote}
-        setSelectedNote={setSelectedNote}
-        onUpdateNote={updateNote}
-        sidebarCollapsed={sidebarCollapsed}
-        onToggleSidebar={handleSidebarToggle}
-        onTogglePin={handleTogglePin}
-        onDeleteNote={handleDeleteNote}
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={toggleFullscreen}
-        isTransitioningFullscreen={isTransitioningFullscreen}
-        headerBackgroundEnabled={headerBackgroundEnabled}
-      />
-
-      <FloatingActionButton
-        onCreateNote={handleCreateNote}
-        selectedNote={selectedNote}
-        sidebarCollapsed={sidebarCollapsed}
-      />
+      {renderAppContent()}
     </div>
   );
 }

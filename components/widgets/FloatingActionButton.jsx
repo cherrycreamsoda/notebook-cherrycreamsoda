@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import "@styles/FloatingActionButton.css";
 import {
@@ -65,7 +65,7 @@ const FloatingActionButton = ({
     holdTimeoutRef.current = setTimeout(() => {
       setIsExpanded(true);
       setIsHolding(false);
-    }, 600); // 600ms hold time
+    }, 600);
   };
 
   const handleMouseUp = (e) => {
@@ -103,7 +103,7 @@ const FloatingActionButton = ({
   const handleTypeSelect = async (noteType) => {
     const noteData = {
       type: noteType.value,
-      title: "New Note",
+      title: "", // changed from "New Note" to empty string
       content:
         noteType.value === "CHECKLIST"
           ? { items: [{ id: Date.now().toString(), text: "", checked: false }] }

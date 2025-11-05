@@ -45,7 +45,7 @@ export const useNotesCache = () => {
         const newCache = new Map(prev);
         newCache.set(noteId, {
           note: updatedNote,
-          cachedAt: prev.get(noteId).cachedAt, // Keep original cache time
+          cachedAt: prev.get(noteId).cachedAt,
           lastAccessed: new Date().toISOString(),
         });
         console.log("Updated cached note:", noteId);

@@ -18,6 +18,7 @@ export const useNotesDeleter = ({
   const deleteNote = async (id) => {
     return execute(async () => {
       let noteToDelete =
+        (selectedNote?._id === id ? selectedNote : null) ||
         allNotes.find((note) => note._id === id) ||
         notes.find((note) => note._id === id);
 
@@ -34,6 +35,17 @@ export const useNotesDeleter = ({
         } catch (e) {}
       }
 
+      const effectiveLocked =
+        selectedNote?._id === id
+          ? !!selectedNote.locked
+          : !!noteToDelete?.locked;
+      if (effectiveLocked) {
+        setCreateError("Unlock the note before deleting.");
+        setSelectedNote(noteToDelete);
+        setTimeout(() => setCreateError(null), 3000);
+        return { blocked: true, note: noteToDelete };
+      }
+
       if (noteToDelete?.pinned) {
         setCreateError("Unpin the note before deleting.");
         setSelectedNote(noteToDelete);
@@ -45,13 +57,14 @@ export const useNotesDeleter = ({
         return { blocked: true, note: noteToDelete };
       }
 
-      const deletedNote = await notesAPI.deleteNote(id);
+      await notesAPI.deleteNote(id);
+      const fullNote = noteToDelete ? { ...noteToDelete, deleted: true } : null;
 
-      if (deletedNote && deletedNote._id) {
-        updateNoteInArrays(deletedNote._id, deletedNote);
+      if (fullNote && fullNote._id) {
+        updateNoteInArrays(fullNote._id, fullNote);
 
-        if (selectedNote?._id === deletedNote._id) {
-          setSelectedNote(deletedNote);
+        if (selectedNote?._id === fullNote._id) {
+          setSelectedNote(fullNote);
         }
       }
 
@@ -59,7 +72,7 @@ export const useNotesDeleter = ({
         setLastCreatedNote(null);
       }
 
-      return deletedNote;
+      return fullNote;
     }, "Failed to delete note");
   };
 
@@ -78,16 +91,18 @@ export const useNotesDeleter = ({
 
   const restoreNote = async (id) => {
     return execute(async () => {
-      const restoredNote = await notesAPI.restoreNote(id);
+      await notesAPI.restoreNote(id);
+      const localNote = allNotes?.find((n) => n._id === id);
+      const fullNote = localNote ? { ...localNote, deleted: false } : null;
 
-      if (restoredNote && restoredNote._id) {
-        updateNoteInArrays(restoredNote._id, restoredNote);
-        if (selectedNote?._id === restoredNote._id) {
-          setSelectedNote(restoredNote);
+      if (fullNote && fullNote._id) {
+        updateNoteInArrays(fullNote._id, fullNote);
+        if (selectedNote?._id === fullNote._id) {
+          setSelectedNote(fullNote);
         }
       }
 
-      return restoredNote;
+      return fullNote;
     }, "Failed to restore note");
   };
 

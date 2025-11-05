@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import "@styles/RemindersEditor.css";
 import {
@@ -40,11 +40,15 @@ const RemindersEditor = ({ content, onContentChange }) => {
     }
   }, [content]);
 
-  useEffect(() => {
+  const memoizedOnContentChange = useCallback(() => {
     if (reminders.length > 0) {
       onContentChange({ reminders });
     }
   }, [reminders, onContentChange]);
+
+  useEffect(() => {
+    memoizedOnContentChange();
+  }, [reminders]);
 
   const addReminder = () => {
     const newReminder = {

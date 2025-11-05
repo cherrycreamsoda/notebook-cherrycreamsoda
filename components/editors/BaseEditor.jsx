@@ -1,9 +1,12 @@
 "use client";
-import React from "react";
-
+import React, { useEffect, useCallback } from "react";
 import EditorToolbar from "../widgets/EditorToolbar";
 import ConfirmationDialog from "@components/common/ConfirmationDialog";
 import { useBaseEditor } from "@hooks/useBaseEditor.js";
+import LockedEditorOverlay from "./LockedEditorOverlay";
+import PasscodeOverlay from "@components/PasscodeOverlay";
+import { useState } from "react";
+import { useNotes } from "@hooks/useNotes";
 
 const BaseEditor = ({
   selectedNote,
@@ -13,6 +16,13 @@ const BaseEditor = ({
   showToolbar = true,
   showStatusBar = true,
   editorClassName = "",
+  sidebarCollapsed,
+  onToggleSidebar,
+  isFullscreen,
+  onToggleFullscreen,
+  handleCloseNote,
+  headerHidden,
+  onToggleHeaderHide,
 }) => {
   const {
     title,
@@ -32,6 +42,64 @@ const BaseEditor = ({
     updateCounts,
   } = useBaseEditor({ selectedNote, onUpdateNote });
 
+  const [showPasscodeOverlay, setShowPasscodeOverlay] = useState(false);
+  const [passcodeMessage, setPasscodeMessage] = useState("");
+  const [passcodeError, setPasscodeError] = useState(false);
+
+  const { unlockNote } = useNotes();
+
+  useEffect(() => {
+    if (!selectedNote?.locked) {
+      setShowPasscodeOverlay(false);
+      setPasscodeMessage("");
+      setPasscodeError(false);
+    }
+  }, [selectedNote?.locked]);
+
+  useEffect(() => {
+    window.showPasscodeOverlay = () => {
+      setShowPasscodeOverlay(true);
+    };
+    return () => {
+      window.showPasscodeOverlay = null;
+    };
+  }, []);
+
+  const handleUnlockAttempt = async (enteredPasscode) => {
+    setPasscodeMessage("");
+    setPasscodeError(false);
+
+    try {
+      const updated = await unlockNote(selectedNote._id, enteredPasscode);
+      if (updated && updated._id) {
+        onUpdateNote(updated);
+        setShowPasscodeOverlay(false);
+        setPasscodeMessage("");
+        setPasscodeError(false);
+      } else {
+        setPasscodeMessage("Try Again");
+        setPasscodeError(true);
+      }
+    } catch (error) {
+      setPasscodeMessage("Error unlocking note");
+      setPasscodeError(true);
+    }
+  };
+
+  const handleDismissPasscodeOverlay = () => {
+    setShowPasscodeOverlay(false);
+    setPasscodeMessage("");
+    setPasscodeError(false);
+  };
+
+  const memoizedOnContentChange = useCallback(
+    (data) => {
+      if (selectedNote.locked) return;
+      return handleContentChange(data);
+    },
+    [handleContentChange, selectedNote.locked]
+  );
+
   return (
     <>
       {showToolbar && (
@@ -40,11 +108,24 @@ const BaseEditor = ({
           selectedNote={selectedNote}
           onTypeChange={handleTypeChange}
           shouldBlinkDropdown={shouldBlinkDropdown}
+          headerHidden={headerHidden}
+          onToggleHeaderHide={onToggleHeaderHide}
         />
       )}
 
       <div className="editor-content-area">
         <div className={`note-editor ${editorClassName}`}>
+          {selectedNote.locked && (
+            <LockedEditorOverlay
+              onClick={() => setShowPasscodeOverlay(true)}
+              sidebarCollapsed={sidebarCollapsed}
+              onToggleSidebar={onToggleSidebar}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={onToggleFullscreen}
+              handleCloseNote={handleCloseNote}
+            />
+          )}
+
           {showTitle && (
             <div className="note-header">
               <input
@@ -55,6 +136,7 @@ const BaseEditor = ({
                 onKeyDown={handleTitleKeyDown}
                 placeholder="Untitled"
                 className="note-title-input"
+                disabled={selectedNote.locked}
               />
               {isSaving && (
                 <div className="saving-indicator">
@@ -68,11 +150,16 @@ const BaseEditor = ({
             className={`editor-container ${!showTitle ? "full-height" : ""}`}
           >
             <div className="content-wrapper">
-              {React.cloneElement(children, {
-                selectedNote,
-                onContentChange: handleContentChange,
-                updateCounts,
-              })}
+              {!selectedNote.locked ? (
+                React.cloneElement(children, {
+                  selectedNote,
+                  onContentChange: memoizedOnContentChange,
+                  updateCounts,
+                  readOnly: selectedNote.locked,
+                })
+              ) : (
+                <div className="editor-blank" aria-hidden="true" />
+              )}
             </div>
           </div>
         </div>
@@ -98,6 +185,15 @@ const BaseEditor = ({
           confirmText="Change Type"
           cancelText="Cancel"
           type="warning"
+        />
+      )}
+
+      {showPasscodeOverlay && (
+        <PasscodeOverlay
+          onPasscodeEntered={handleUnlockAttempt}
+          onDismiss={handleDismissPasscodeOverlay}
+          message={passcodeMessage}
+          isError={passcodeError}
         />
       )}
     </>
