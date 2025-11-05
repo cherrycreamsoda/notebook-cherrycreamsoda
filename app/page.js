@@ -332,7 +332,7 @@ function PageContent() {
         isLoading={initialLoading}
         progress={progress}
         onLoadingComplete={() => {
-          console.log("[v0] Liquid overlay fade-out complete");
+          console.log("Liquid overlay fade-out complete");
         }}
       />
 
